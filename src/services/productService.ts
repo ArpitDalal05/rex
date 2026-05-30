@@ -8,6 +8,7 @@ export interface Product {
   purchase_price: number;
   selling_price: number;
   quantity: number;
+  location?: string;
 }
 
 export const productService = {

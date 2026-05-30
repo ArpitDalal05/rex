@@ -9,6 +9,7 @@ CREATE TABLE products (
     purchase_price DECIMAL(10, 2) NOT NULL,
     selling_price DECIMAL(10, 2) NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 0,
+    location TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

@@ -149,9 +149,15 @@ export default function InventoryPage() {
                     <Input type="number" {...register("selling_price", { required: true, valueAsNumber: true })} placeholder="₹" />
                   </div>
                 </div>
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">Initial Quantity</label>
-                  <Input type="number" {...register("quantity", { required: true, valueAsNumber: true })} defaultValue="1" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <label className="text-sm font-medium">Initial Quantity</label>
+                    <Input type="number" {...register("quantity", { required: true, valueAsNumber: true })} defaultValue="1" />
+                  </div>
+                  <div className="grid gap-2">
+                    <label className="text-sm font-medium">Shop Location</label>
+                    <Input {...register("location")} placeholder="e.g. Shelf A1" />
+                  </div>
                 </div>
               </div>
               <DialogFooter>
@@ -202,6 +208,7 @@ export default function InventoryPage() {
                   <TableHead>Product</TableHead>
                   <TableHead>Brand</TableHead>
                   <TableHead>IMEI</TableHead>
+                  <TableHead>Location</TableHead>
                   <TableHead>Stock</TableHead>
                   <TableHead>Price (Sell)</TableHead>
                   <TableHead>Status</TableHead>
@@ -214,6 +221,7 @@ export default function InventoryPage() {
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>{product.brand}</TableCell>
                     <TableCell className="font-mono text-xs">{product.imei || "N/A"}</TableCell>
+                    <TableCell>{product.location || "N/A"}</TableCell>
                     <TableCell>{product.quantity}</TableCell>
                     <TableCell>₹{product.selling_price}</TableCell>
                     <TableCell>
