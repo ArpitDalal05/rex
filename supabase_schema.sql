@@ -63,9 +63,9 @@ ALTER TABLE sale_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
 -- Basic Policies (To be refined based on roles)
--- For now, allow authenticated users to read everything
-CREATE POLICY "Authenticated users can read products" ON products FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Authenticated users can read customers" ON customers FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Authenticated users can read sales" ON sales FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Authenticated users can read sale_items" ON sale_items FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Authenticated users can read profiles" ON profiles FOR SELECT TO authenticated USING (true);
+-- Allow authenticated users full access to manage inventory and sales
+CREATE POLICY "Authenticated users can manage products" ON products FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Authenticated users can manage customers" ON customers FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Authenticated users can manage sales" ON sales FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Authenticated users can manage sale_items" ON sale_items FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Authenticated users can manage profiles" ON profiles FOR ALL TO authenticated USING (true) WITH CHECK (true);
