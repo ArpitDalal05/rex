@@ -10,9 +10,15 @@ CREATE TABLE products (
     selling_price DECIMAL(10, 2) NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 0,
     location TEXT,
+    image_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- 2. Create Storage Bucket for Product Images
+-- Note: Run this in Supabase Dashboard -> Storage to create a 'product-images' bucket
+-- or use the following SQL if your Supabase version supports it.
+-- INSERT INTO storage.buckets (id, name, public) VALUES ('product-images', 'product-images', true);
 
 -- 2. Customers Table
 CREATE TABLE customers (

@@ -4,11 +4,12 @@ export interface Product {
   id?: string;
   name: string;
   brand: string;
-  imei?: string;
+  imei?: string | null;
   purchase_price: number;
   selling_price: number;
   quantity: number;
-  location?: string;
+  location?: string | null;
+  image_url?: string | null;
 }
 
 export const productService = {
@@ -23,9 +24,18 @@ export const productService = {
   },
 
   async addProduct(product: Product) {
+    // Ensure empty strings for optional fields are converted to null
+    // This prevents unique constraint violations on empty IMEI strings
+    const cleanProduct = {
+      ...product,
+      imei: product.imei?.trim() || null,
+      location: product.location?.trim() || null,
+      image_url: product.image_url?.trim() || null
+    };
+
     const { data, error } = await supabase
       .from('products')
-      .insert([product])
+      .insert([cleanProduct])
       .select();
     
     if (error) throw error;
@@ -50,5 +60,23 @@ export const productService = {
       .eq('id', id);
     
     if (error) throw error;
+  },
+
+  async uploadProductImage(file: File) {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `products/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('product-images')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
   }
 };

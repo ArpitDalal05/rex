@@ -25,7 +25,9 @@ import {
   Filter, 
   Edit, 
   Trash2,
-  Loader2
+  Loader2,
+  Camera,
+  Image as ImageIcon
 } from "lucide-react";
 import {
   Dialog,
@@ -45,6 +47,8 @@ export default function InventoryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<Product>();
 
@@ -64,21 +68,43 @@ export default function InventoryPage() {
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const onSubmit = async (data: Product) => {
     try {
       setIsSubmitting(true);
+      
+      let image_url = null;
+      if (selectedFile) {
+        image_url = await productService.uploadProductImage(selectedFile);
+      }
+
       await productService.addProduct({
         ...data,
         purchase_price: Number(data.purchase_price),
         selling_price: Number(data.selling_price),
-        quantity: Number(data.quantity)
+        quantity: Number(data.quantity),
+        image_url
       });
+      
       setIsDialogOpen(false);
       reset();
+      setImagePreview(null);
+      setSelectedFile(null);
       fetchProducts();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding product:", error);
-      alert("Failed to add product. Check if IMEI is unique.");
+      alert(error.message || "Failed to add product. Check if IMEI is unique.");
     } finally {
       setIsSubmitting(false);
     }
@@ -109,14 +135,21 @@ export default function InventoryPage() {
           <p className="text-muted-foreground">Manage your product stock and details in real-time.</p>
         </div>
         
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) {
+            reset();
+            setImagePreview(null);
+            setSelectedFile(null);
+          }
+        }}>
           <DialogTrigger>
             <Button className="gap-2">
               <Plus className="w-4 h-4" />
               Add Product
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[500px]">
             <form onSubmit={handleSubmit(onSubmit)}>
               <DialogHeader>
                 <DialogTitle>Add New Product</DialogTitle>
@@ -125,6 +158,27 @@ export default function InventoryPage() {
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
+                {/* Image Upload Area */}
+                <div className="flex flex-col items-center gap-4 py-2 border-2 border-dashed rounded-lg bg-muted/50 relative group">
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="Preview" className="w-32 h-32 object-contain rounded-md" />
+                  ) : (
+                    <div className="w-32 h-32 flex flex-col items-center justify-center text-muted-foreground">
+                      <ImageIcon className="w-12 h-12 mb-2" />
+                      <span className="text-xs text-center px-4">Click to upload product photo</span>
+                    </div>
+                  )}
+                  <Input 
+                    type="file" 
+                    accept="image/*" 
+                    className="absolute inset-0 opacity-0 cursor-pointer" 
+                    onChange={handleImageChange}
+                  />
+                  <div className="absolute bottom-2 right-2 p-1 bg-background rounded-full shadow-sm">
+                    <Camera className="w-4 h-4 text-primary" />
+                  </div>
+                </div>
+
                 <div className="grid gap-2">
                   <label className="text-sm font-medium">Product Name</label>
                   <Input {...register("name", { required: true })} placeholder="e.g. iPhone 15 Pro" />
@@ -205,6 +259,7 @@ export default function InventoryPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[80px]">Photo</TableHead>
                   <TableHead>Product</TableHead>
                   <TableHead>Brand</TableHead>
                   <TableHead>IMEI</TableHead>
@@ -218,6 +273,15 @@ export default function InventoryPage() {
               <TableBody>
                 {filteredProducts.map((product) => (
                   <TableRow key={product.id}>
+                    <TableCell>
+                      {product.image_url ? (
+                        <img src={product.image_url} alt={product.name} className="w-10 h-10 object-contain rounded bg-muted p-1" />
+                      ) : (
+                        <div className="w-10 h-10 flex items-center justify-center bg-muted rounded">
+                          <ImageIcon className="w-5 h-5 text-muted-foreground" />
+                        </div>
+                      )}
+                    </TableCell>
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>{product.brand}</TableCell>
                     <TableCell className="font-mono text-xs">{product.imei || "N/A"}</TableCell>
@@ -252,7 +316,7 @@ export default function InventoryPage() {
                 ))}
                 {filteredProducts.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       No products found. Start by adding a new product.
                     </TableCell>
                   </TableRow>
