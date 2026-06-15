@@ -401,7 +401,6 @@ export default function InventoryPage() {
         </CardContent>
       </Card>
 
-      {/* View Product Dialog */}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
         <DialogContent className='sm:max-w-[450px]'>
           <DialogHeader>
@@ -437,7 +436,6 @@ export default function InventoryPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Sell Product Dialog */}
       <Dialog open={isSellOpen} onOpenChange={setIsSellOpen}>
         <DialogContent className='sm:max-w-[400px]'>
           <DialogHeader>
@@ -478,7 +476,7 @@ export default function InventoryPage() {
             
             <div className='grid gap-2'>
               <label className='text-sm font-medium'>Payment Method</label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+              <Select value={paymentMethod} onValueChange={(val) => setPaymentMethod(val || 'Cash')}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value='Cash'>Cash</SelectItem>
@@ -501,7 +499,6 @@ export default function InventoryPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Receipt Dialog */}
       <Dialog open={isReceiptOpen} onOpenChange={setIsReceiptOpen}>
         <DialogContent className='sm:max-w-[400px]'>
           <DialogHeader className='no-print'>
