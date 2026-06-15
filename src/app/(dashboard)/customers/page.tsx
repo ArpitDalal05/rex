@@ -67,11 +67,9 @@ export default function CustomersPage() {
           setIsDialogOpen(open);
           if (!open) reset();
         }}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add Customer
-            </Button>
+          <DialogTrigger render={<Button className="gap-2" />}>
+            <Plus className="w-4 h-4" />
+            Add Customer
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <form onSubmit={handleSubmit(onSubmit)}>

@@ -186,11 +186,9 @@ export default function InventoryPage() {
           setIsFormOpen(open);
           if (!open) resetForm();
         }}>
-          <DialogTrigger asChild>
-            <Button className="gap-2" onClick={() => setIsFormOpen(true)}>
-              <Plus className="w-4 h-4" />
-              Add Product
-            </Button>
+          <DialogTrigger render={<Button className="gap-2" />}>
+            <Plus className="w-4 h-4" />
+            Add Product
           </DialogTrigger>
           <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
             <form onSubmit={handleSubmit(onSubmit)}>
