@@ -27,10 +27,7 @@ import {
   Loader2,
   Camera,
   Image as ImageIcon,
-  Eye,
   ShoppingCart,
-  Download,
-  Smartphone,
   Printer
 } from 'lucide-react';
 import {
@@ -55,7 +52,6 @@ export default function InventoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isViewOpen, setIsViewOpen] = useState(false);
   const [isSellOpen, setIsSellOpen] = useState(false);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,7 +60,6 @@ export default function InventoryPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
   const [sellingProduct, setSellingProduct] = useState<Product | null>(null);
   const [lastSale, setLastSale] = useState<any>(null);
 
@@ -116,11 +111,6 @@ export default function InventoryPage() {
     setImagePreview(product.image_url || null);
     setSelectedFile(null);
     setIsFormOpen(true);
-  };
-
-  const handleView = (product: Product) => {
-    setViewingProduct(product);
-    setIsViewOpen(true);
   };
 
   const handleSellInit = (product: Product) => {
@@ -353,14 +343,16 @@ export default function InventoryPage() {
                   <TableHead className='w-[60px] lg:w-[80px]'>Photo</TableHead>
                   <TableHead>Product</TableHead>
                   <TableHead>Stock</TableHead>
+                  <TableHead>Buy Price</TableHead>
                   <TableHead>Sell Price</TableHead>
+                  <TableHead>Location</TableHead>
                   <TableHead className='text-right'>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredProducts.map((product) => (
-                  <TableRow key={product.id} className='cursor-pointer hover:bg-muted/50' onClick={() => handleView(product)}>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
+                  <TableRow key={product.id} className='hover:bg-muted/50'>
+                    <TableCell>
                       {product.image_url ? (
                         <img src={product.image_url} alt='' className='w-8 h-8 lg:w-10 lg:h-10 object-contain rounded bg-muted' />
                       ) : (
@@ -376,8 +368,10 @@ export default function InventoryPage() {
                     <TableCell>
                       <Badge variant={(product.quantity ?? 0) > 5 ? 'secondary' : 'destructive'}>{product.quantity}</Badge>
                     </TableCell>
+                    <TableCell>₹{product.purchase_price}</TableCell>
                     <TableCell>₹{product.selling_price}</TableCell>
-                    <TableCell className='text-right' onClick={(e) => e.stopPropagation()}>
+                    <TableCell>{product.location || 'N/A'}</TableCell>
+                    <TableCell className='text-right'>
                       <div className='flex justify-end gap-1'>
                         <Button variant='ghost' size='icon' className='h-8 w-8 text-green-600' onClick={() => handleSellInit(product)}>
                           <ShoppingCart className='h-4 w-4' />
