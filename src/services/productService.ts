@@ -72,8 +72,8 @@ export const productService = {
 
   async uploadProductImage(file: File) {
     const fileExt = file.name.split('.').pop();
-    const fileName = ${Math.random()}.;
-    const filePath = products/;
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `products/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from('product-images')
