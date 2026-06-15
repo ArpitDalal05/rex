@@ -79,7 +79,7 @@ export default function DashboardPage() {
   const statCards = [
     {
       title: "Total Revenue",
-      value: \₹\\,
+      value: `₹${stats.totalRevenue.toLocaleString()}`,
       description: "Based on all recorded sales",
       icon: DollarSign,
       color: "text-green-500",
@@ -128,7 +128,7 @@ export default function DashboardPage() {
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <stat.icon className={\h-4 w-4 \\} />
+              <stat.icon className={`h-4 w-4 ${stat.color}`} />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>

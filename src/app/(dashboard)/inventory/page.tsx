@@ -280,7 +280,7 @@ export default function InventoryPage() {
             <div>
               <CardTitle>Product List</CardTitle>
               <CardDescription>
-                {loading ? "Loading products..." : Total \ products found.}
+                {loading ? "Loading products..." : `Total ${filteredProducts.length} products found.`}
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
