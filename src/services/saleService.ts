@@ -10,39 +10,80 @@ export interface Sale {
 
 export const saleService = {
   async getAllSales() {
-    const { data, error } = await supabase
-      .from('sales')
-      .select('*, customers(name)')
-      .order('created_at', { ascending: false });
+    // Try to get sales with customer names, fallback to just sales if it fails
+    try {
+      const { data, error } = await supabase
+        .from('sales')
+        .select(`
+          *,
+          customers (
+            name
+          )
+        `)
+        .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    return data;
+      if (error) {
+        console.error("Join fetch failed, fetching basic sales:", error);
+        const { data: basicData, error: basicError } = await supabase
+          .from('sales')
+          .select('*')
+          .order('created_at', { ascending: false });
+        if (basicError) throw basicError;
+        return basicData;
+      }
+      return data;
+    } catch (err) {
+      console.error("Sale fetch error:", err);
+      return [];
+    }
   },
 
-  async addSale(sale: Sale, items: any[]) {
-    // Basic implementation (ideally this should be a transaction via an RPC)
-    const { data: saleData, error: saleError } = await supabase
-      .from('sales')
-      .insert([sale])
-      .select();
+  async recordSale(sale: Sale, items: { product_id: string; quantity: number; price: number }[]) {
+    try {
+      // 1. Create the sale record
+      const { data: saleData, error: saleError } = await supabase
+        .from('sales')
+        .insert([sale])
+        .select();
 
-    if (saleError) throw saleError;
-    
-    const newSale = saleData[0];
-    
-    const saleItems = items.map(item => ({
-      sale_id: newSale.id,
-      product_id: item.product_id,
-      quantity: item.quantity,
-      price: item.price
-    }));
+      if (saleError) throw saleError;
+      const newSale = saleData[0];
 
-    const { error: itemsError } = await supabase
-      .from('sale_items')
-      .insert(saleItems);
+      // 2. Create the sale items records
+      const saleItems = items.map(item => ({
+        sale_id: newSale.id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        price: item.price
+      }));
 
-    if (itemsError) throw itemsError;
+      const { error: itemsError } = await supabase
+        .from('sale_items')
+        .insert(saleItems);
 
-    return newSale;
+      if (itemsError) throw itemsError;
+
+      // 3. Update product quantities (decrement)
+      for (const item of items) {
+        const { data: product } = await supabase
+          .from('products')
+          .select('quantity')
+          .eq('id', item.product_id)
+          .single();
+
+        if (product) {
+          const newQuantity = Math.max(0, product.quantity - item.quantity);
+          await supabase
+            .from('products')
+            .update({ quantity: newQuantity })
+            .eq('id', item.product_id);
+        }
+      }
+
+      return newSale;
+    } catch (error) {
+      console.error("Error recording sale:", error);
+      throw error;
+    }
   }
 };
