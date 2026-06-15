@@ -4,7 +4,6 @@ export interface Product {
   id?: string;
   name: string;
   brand: string;
-  imei?: string | null;
   purchase_price: number;
   selling_price: number;
   quantity: number;
@@ -27,7 +26,6 @@ export const productService = {
   async addProduct(product: Product) {
     const cleanProduct = {
       ...product,
-      imei: product.imei?.trim() || null,
       location: product.location?.trim() || null,
       image_url: product.image_url?.trim() || null,
       compatible_with: product.compatible_with?.trim() || null
@@ -45,7 +43,6 @@ export const productService = {
   async updateProduct(id: string, product: Partial<Product>) {
     const cleanProduct = {
       ...product,
-      imei: product.imei?.trim() || null,
       location: product.location?.trim() || null,
       image_url: product.image_url?.trim() || null,
       compatible_with: product.compatible_with?.trim() || null

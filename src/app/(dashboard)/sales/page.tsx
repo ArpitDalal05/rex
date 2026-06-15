@@ -43,6 +43,9 @@ export default function SalesPage() {
       customerName: sale.customers?.name || 'Walk-in Customer',
       total: sale.total_amount,
       paymentMethod: sale.payment_method,
+      // Pass the first IMEI if available in the first sale item
+      imei: sale.sale_items?.[0]?.imei || null,
+      productName: sale.sale_items?.[0]?.products?.name || 'Product'
     });
     setIsReceiptOpen(true);
   };
@@ -128,6 +131,7 @@ export default function SalesPage() {
                 <div className='flex justify-between'><span>Receipt No:</span><span className='font-mono uppercase'>{selectedSale.id.split('-')[0]}</span></div>
                 <div className='flex justify-between'><span>Date:</span><span>{selectedSale.date}</span></div>
                 <div className='flex justify-between'><span>Customer:</span><span>{selectedSale.customerName}</span></div>
+                {selectedSale.imei && <div className='flex justify-between font-mono text-xs'><span>IMEI:</span><span>{selectedSale.imei}</span></div>}
                 <div className='flex justify-between font-bold pt-2 border-t'>
                   <span>Total Paid ({selectedSale.paymentMethod}):</span>
                   <span>₹{selectedSale.total}</span>

@@ -70,6 +70,7 @@ export default function InventoryPage() {
 
   const [sellQuantity, setSellQuantity] = useState(1);
   const [sellPrice, setSellPrice] = useState(0);
+  const [sellImei, setSellImei] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState('walk-in');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
 
@@ -125,6 +126,7 @@ export default function InventoryPage() {
     setSellingProduct(product);
     setSellPrice(Number(product.selling_price));
     setSellQuantity(1);
+    setSellImei('');
     setSelectedCustomerId('walk-in');
     setPaymentMethod('Cash');
     setIsSellOpen(true);
@@ -181,7 +183,8 @@ export default function InventoryPage() {
       const itemsPayload = [{
         product_id: sellingProduct.id!,
         quantity: sellQuantity,
-        price: sellPrice
+        price: sellPrice,
+        imei: sellImei || null
       }];
 
       const result = await saleService.recordSale(salePayload, itemsPayload);
@@ -198,7 +201,8 @@ export default function InventoryPage() {
         quantity: sellQuantity,
         price: sellPrice,
         total: sellPrice * sellQuantity,
-        paymentMethod
+        paymentMethod,
+        imei: sellImei
       });
 
       setIsSellOpen(false);
@@ -231,7 +235,6 @@ export default function InventoryPage() {
     reset({
       name: '',
       brand: '',
-      imei: '',
       purchase_price: 0,
       selling_price: 0,
       quantity: 1,
@@ -246,7 +249,6 @@ export default function InventoryPage() {
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.imei && p.imei.includes(searchTerm)) ||
     (p.compatible_with && p.compatible_with.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
@@ -285,47 +287,43 @@ export default function InventoryPage() {
                 </div>
                 <div className='grid gap-2'>
                   <label className='text-sm font-medium'>Product Name</label>
-                  <Input {...register('name', { required: true })} />
+                  <Input {...register('name', { required: true })} placeholder='e.g. iPhone 15 Pro' />
                 </div>
                 <div className='grid gap-2'>
                   <label className='text-sm font-medium'>Compatible With</label>
-                  <Input {...register('compatible_with')} />
+                  <Input {...register('compatible_with')} placeholder='e.g. Universal, iPhone 14, 15' />
                 </div>
                 <div className='grid grid-cols-2 gap-4'>
                   <div className='grid gap-2'>
                     <label className='text-sm font-medium'>Brand</label>
-                    <Input {...register('brand', { required: true })} />
+                    <Input {...register('brand', { required: true })} placeholder='Apple, Samsung, etc.' />
                   </div>
                   <div className='grid gap-2'>
-                    <label className='text-sm font-medium'>IMEI</label>
-                    <Input {...register('imei')} />
+                    <label className='text-sm font-medium'>Location</label>
+                    <Input {...register('location')} placeholder='e.g. Shelf A1' />
                   </div>
                 </div>
                 <div className='grid grid-cols-2 gap-4'>
                   <div className='grid gap-2'>
                     <label className='text-sm font-medium'>Purchase Price</label>
-                    <Input type='number' step='0.01' {...register('purchase_price', { required: true })} />
+                    <Input type='number' step='0.01' {...register('purchase_price', { required: true })} placeholder='₹' />
                   </div>
                   <div className='grid gap-2'>
                     <label className='text-sm font-medium'>Selling Price</label>
-                    <Input type='number' step='0.01' {...register('selling_price', { required: true })} />
+                    <Input type='number' step='0.01' {...register('selling_price', { required: true })} placeholder='₹' />
                   </div>
                 </div>
-                <div className='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-1 gap-4'>
                   <div className='grid gap-2'>
-                    <label className='text-sm font-medium'>Quantity</label>
+                    <label className='text-sm font-medium'>Initial Quantity</label>
                     <Input type='number' {...register('quantity', { required: true })} />
-                  </div>
-                  <div className='grid gap-2'>
-                    <label className='text-sm font-medium'>Location</label>
-                    <Input {...register('location')} />
                   </div>
                 </div>
               </div>
               <DialogFooter>
                 <Button type='submit' disabled={isSubmitting} className='w-full'>
                   {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-                  Save
+                  Save Product
                 </Button>
               </DialogFooter>
             </form>
@@ -333,7 +331,7 @@ export default function InventoryPage() {
         </Dialog>
       </div>
 
-      <Card className='overflow-hidden'>
+      <Card className='overflow-hidden border-none shadow-sm'>
         <CardHeader className='px-4 py-6'>
           <div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>
             <CardTitle>Product List</CardTitle>
@@ -381,7 +379,7 @@ export default function InventoryPage() {
                     <TableCell>{product.location || 'N/A'}</TableCell>
                     <TableCell className='text-right'>
                       <div className='flex justify-end gap-1'>
-                        <Button variant='ghost' size='icon' title='View' onClick={() => handleView(product)}>
+                        <Button variant='ghost' size='icon' title='View Details' onClick={() => handleView(product)}>
                           <Eye className='h-4 w-4' />
                         </Button>
                         <Button variant='ghost' size='icon' className='h-8 w-8 text-green-600' title='Sell' onClick={() => handleSellInit(product)}>
@@ -430,7 +428,6 @@ export default function InventoryPage() {
                 <div><p className='text-muted-foreground'>Stock</p><p className='font-semibold'>{viewingProduct.quantity} units</p></div>
                 <div><p className='text-muted-foreground'>Location</p><p className='font-semibold'>{viewingProduct.location || 'N/A'}</p></div>
                 <div className='col-span-2'><p className='text-muted-foreground'>Compatible With</p><p className='font-semibold'>{viewingProduct.compatible_with || 'N/A'}</p></div>
-                {viewingProduct.imei && <div className='col-span-2'><p className='text-muted-foreground'>IMEI</p><p className='font-mono'>{viewingProduct.imei}</p></div>}
               </div>
             </div>
           )}
@@ -440,6 +437,7 @@ export default function InventoryPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Sell Product Dialog */}
       <Dialog open={isSellOpen} onOpenChange={setIsSellOpen}>
         <DialogContent className='sm:max-w-[400px]'>
           <DialogHeader>
@@ -457,6 +455,16 @@ export default function InventoryPage() {
                 </SelectContent>
               </Select>
             </div>
+            
+            <div className='grid gap-2'>
+              <label className='text-sm font-medium'>IMEI Number</label>
+              <Input 
+                placeholder='Scan or enter IMEI' 
+                value={sellImei} 
+                onChange={(e) => setSellImei(e.target.value)}
+              />
+            </div>
+
             <div className='grid grid-cols-2 gap-4'>
               <div className='grid gap-2'>
                 <label className='text-sm font-medium'>Quantity</label>
@@ -467,17 +475,33 @@ export default function InventoryPage() {
                 <Input type='number' value={sellPrice} onChange={(e) => setSellPrice(Number(e.target.value))} />
               </div>
             </div>
+            
+            <div className='grid gap-2'>
+              <label className='text-sm font-medium'>Payment Method</label>
+              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='Cash'>Cash</SelectItem>
+                  <SelectItem value='UPI'>UPI / Digital</SelectItem>
+                  <SelectItem value='Card'>Card</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className='bg-muted p-3 rounded-lg flex justify-between items-center font-bold'>
               <span>Total</span>
-              <span>₹{sellPrice * sellQuantity}</span>
+              <span className='text-lg'>₹{sellPrice * sellQuantity}</span>
             </div>
           </div>
           <DialogFooter>
-            <Button className='w-full' onClick={handleRecordSale} disabled={isSubmitting}>Complete Sale</Button>
+            <Button className='w-full' onClick={handleRecordSale} disabled={isSubmitting}>
+              {isSubmitting ? <Loader2 className='animate-spin h-4 w-4' /> : 'Complete Sale'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Receipt Dialog */}
       <Dialog open={isReceiptOpen} onOpenChange={setIsReceiptOpen}>
         <DialogContent className='sm:max-w-[400px]'>
           <DialogHeader className='no-print'>
@@ -494,6 +518,7 @@ export default function InventoryPage() {
                 <div className='flex justify-between'><span>Receipt No:</span><span className='font-mono uppercase'>{lastSale.id.split('-')[0]}</span></div>
                 <div className='flex justify-between'><span>Date:</span><span>{lastSale.date}</span></div>
                 <div className='flex justify-between'><span>Customer:</span><span>{lastSale.customerName}</span></div>
+                {lastSale.imei && <div className='flex justify-between font-mono text-xs'><span>IMEI:</span><span>{lastSale.imei}</span></div>}
               </div>
               <Table>
                 <TableHeader><TableRow className='hover:bg-transparent border-b-2'><TableHead className='px-0 text-black h-8'>Item</TableHead><TableHead className='text-center text-black h-8'>Qty</TableHead><TableHead className='text-right px-0 text-black h-8'>Price</TableHead></TableRow></TableHeader>

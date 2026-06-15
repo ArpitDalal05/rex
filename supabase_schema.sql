@@ -5,7 +5,6 @@ CREATE TABLE products (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     brand TEXT NOT NULL,
-    imei TEXT UNIQUE,
     purchase_price DECIMAL(10, 2) NOT NULL,
     selling_price DECIMAL(10, 2) NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 0,
@@ -40,7 +39,8 @@ CREATE TABLE sale_items (
     sale_id UUID REFERENCES sales(id) ON DELETE CASCADE,
     product_id UUID REFERENCES products(id),
     quantity INTEGER NOT NULL,
-    price DECIMAL(10, 2) NOT NULL
+    price DECIMAL(10, 2) NOT NULL,
+    imei TEXT -- Added imei here instead of products table
 );
 
 -- 5. Profiles Table (Linked to Supabase Auth)
@@ -58,8 +58,7 @@ ALTER TABLE sales ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sale_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
--- Basic Policies (To be refined based on roles)
--- Allow authenticated users full access to manage inventory and sales
+-- Basic Policies
 CREATE POLICY "Authenticated users can manage products" ON products FOR ALL TO authenticated USING (true) WITH CHECK (true); 
 CREATE POLICY "Authenticated users can manage customers" ON customers FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Authenticated users can manage sales" ON sales FOR ALL TO authenticated USING (true) WITH CHECK (true);       

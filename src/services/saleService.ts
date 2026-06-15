@@ -10,7 +10,6 @@ export interface Sale {
 
 export const saleService = {
   async getAllSales() {
-    // Try to get sales with customer names, fallback to just sales if it fails
     try {
       const { data, error } = await supabase
         .from('sales')
@@ -18,6 +17,12 @@ export const saleService = {
           *,
           customers (
             name
+          ),
+          sale_items (
+            *,
+            products (
+              name
+            )
           )
         `)
         .order('created_at', { ascending: false });
@@ -38,7 +43,7 @@ export const saleService = {
     }
   },
 
-  async recordSale(sale: Sale, items: { product_id: string; quantity: number; price: number }[]) {
+  async recordSale(sale: Sale, items: { product_id: string; quantity: number; price: number; imei?: string | null }[]) {
     try {
       // 1. Create the sale record
       const { data: saleData, error: saleError } = await supabase
@@ -54,7 +59,8 @@ export const saleService = {
         sale_id: newSale.id,
         product_id: item.product_id,
         quantity: item.quantity,
-        price: item.price
+        price: item.price,
+        imei: item.imei || null
       }));
 
       const { error: itemsError } = await supabase
