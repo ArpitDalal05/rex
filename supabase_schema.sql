@@ -11,14 +11,10 @@ CREATE TABLE products (
     quantity INTEGER NOT NULL DEFAULT 0,
     location TEXT,
     image_url TEXT,
+    compatible_with TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
--- 2. Create Storage Bucket for Product Images
--- Note: Run this in Supabase Dashboard -> Storage to create a 'product-images' bucket
--- or use the following SQL if your Supabase version supports it.
--- INSERT INTO storage.buckets (id, name, public) VALUES ('product-images', 'product-images', true);
 
 -- 2. Customers Table
 CREATE TABLE customers (
@@ -64,8 +60,8 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
 -- Basic Policies (To be refined based on roles)
 -- Allow authenticated users full access to manage inventory and sales
-CREATE POLICY "Authenticated users can manage products" ON products FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Authenticated users can manage products" ON products FOR ALL TO authenticated USING (true) WITH CHECK (true); 
 CREATE POLICY "Authenticated users can manage customers" ON customers FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Authenticated users can manage sales" ON sales FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Authenticated users can manage sales" ON sales FOR ALL TO authenticated USING (true) WITH CHECK (true);       
 CREATE POLICY "Authenticated users can manage sale_items" ON sale_items FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Authenticated users can manage profiles" ON profiles FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Authenticated users can manage profiles" ON profiles FOR ALL TO authenticated USING (true) WITH CHECK (true); 

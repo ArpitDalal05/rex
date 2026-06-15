@@ -10,6 +10,7 @@ export interface Product {
   quantity: number;
   location?: string | null;
   image_url?: string | null;
+  compatible_with?: string | null;
 }
 
 export const productService = {
@@ -18,37 +19,44 @@ export const productService = {
       .from('products')
       .select('*')
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
     return data;
   },
 
   async addProduct(product: Product) {
-    // Ensure empty strings for optional fields are converted to null
-    // This prevents unique constraint violations on empty IMEI strings
     const cleanProduct = {
       ...product,
       imei: product.imei?.trim() || null,
       location: product.location?.trim() || null,
-      image_url: product.image_url?.trim() || null
+      image_url: product.image_url?.trim() || null,
+      compatible_with: product.compatible_with?.trim() || null
     };
 
     const { data, error } = await supabase
       .from('products')
       .insert([cleanProduct])
       .select();
-    
+
     if (error) throw error;
     return data[0];
   },
 
   async updateProduct(id: string, product: Partial<Product>) {
+    const cleanProduct = {
+      ...product,
+      imei: product.imei?.trim() || null,
+      location: product.location?.trim() || null,
+      image_url: product.image_url?.trim() || null,
+      compatible_with: product.compatible_with?.trim() || null
+    };
+
     const { data, error } = await supabase
       .from('products')
-      .update(product)
+      .update(cleanProduct)
       .eq('id', id)
       .select();
-    
+
     if (error) throw error;
     return data[0];
   },
@@ -58,14 +66,14 @@ export const productService = {
       .from('products')
       .delete()
       .eq('id', id);
-    
+
     if (error) throw error;
   },
 
   async uploadProductImage(file: File) {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `products/${fileName}`;
+    const fileName = ${Math.random()}.;
+    const filePath = products/;
 
     const { error: uploadError } = await supabase.storage
       .from('product-images')
