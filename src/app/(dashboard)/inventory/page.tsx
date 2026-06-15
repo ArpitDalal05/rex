@@ -28,7 +28,8 @@ import {
   Camera,
   Image as ImageIcon,
   ShoppingCart,
-  Printer
+  Printer,
+  Eye
 } from 'lucide-react';
 import {
   Dialog,
@@ -50,21 +51,23 @@ export default function InventoryPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isViewOpen, setIsViewOpen] = useState(false);
   const [isSellOpen, setIsSellOpen] = useState(false);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  
+
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
   const [sellingProduct, setSellingProduct] = useState<Product | null>(null);
   const [lastSale, setLastSale] = useState<any>(null);
 
   const { register, handleSubmit, reset } = useForm<Product>();
-  
+
   const [sellQuantity, setSellQuantity] = useState(1);
   const [sellPrice, setSellPrice] = useState(0);
   const [selectedCustomerId, setSelectedCustomerId] = useState('walk-in');
@@ -111,6 +114,11 @@ export default function InventoryPage() {
     setImagePreview(product.image_url || null);
     setSelectedFile(null);
     setIsFormOpen(true);
+  };
+
+  const handleView = (product: Product) => {
+    setViewingProduct(product);
+    setIsViewOpen(true);
   };
 
   const handleSellInit = (product: Product) => {
@@ -177,9 +185,9 @@ export default function InventoryPage() {
       }];
 
       const result = await saleService.recordSale(salePayload, itemsPayload);
-      
-      const customerName = selectedCustomerId === 'walk-in' 
-        ? 'Walk-in Customer' 
+
+      const customerName = selectedCustomerId === 'walk-in'
+        ? 'Walk-in Customer'
         : customers.find(c => c.id === selectedCustomerId)?.name || 'Customer';
 
       setLastSale({
@@ -366,20 +374,23 @@ export default function InventoryPage() {
                       <div className='text-xs text-muted-foreground'>{product.brand}</div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={(product.quantity ?? 0) > 5 ? 'secondary' : 'destructive'}>{product.quantity}</Badge>
+                      <Badge variant={(product.quantity ?? 0) > 5 ? 'secondary' : 'destructive'}>{product.quantity}</Badge>  
                     </TableCell>
                     <TableCell>₹{product.purchase_price}</TableCell>
                     <TableCell>₹{product.selling_price}</TableCell>
                     <TableCell>{product.location || 'N/A'}</TableCell>
                     <TableCell className='text-right'>
                       <div className='flex justify-end gap-1'>
-                        <Button variant='ghost' size='icon' className='h-8 w-8 text-green-600' onClick={() => handleSellInit(product)}>
+                        <Button variant='ghost' size='icon' title='View' onClick={() => handleView(product)}>
+                          <Eye className='h-4 w-4' />
+                        </Button>
+                        <Button variant='ghost' size='icon' className='h-8 w-8 text-green-600' title='Sell' onClick={() => handleSellInit(product)}>
                           <ShoppingCart className='h-4 w-4' />
                         </Button>
-                        <Button variant='ghost' size='icon' className='h-8 w-8' onClick={() => handleEdit(product)}>
+                        <Button variant='ghost' size='icon' className='h-8 w-8' title='Edit' onClick={() => handleEdit(product)}>
                           <Edit className='h-4 w-4' />
                         </Button>
-                        <Button variant='ghost' size='icon' className='h-8 w-8 text-destructive' onClick={() => product.id && handleDelete(product.id)}>
+                        <Button variant='ghost' size='icon' className='h-8 w-8 text-destructive' title='Delete' onClick={() => product.id && handleDelete(product.id)}>
                           <Trash2 className='h-4 w-4' />
                         </Button>
                       </div>
@@ -391,6 +402,43 @@ export default function InventoryPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* View Product Dialog */}
+      <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
+        <DialogContent className='sm:max-w-[450px]'>
+          <DialogHeader>
+            <DialogTitle>Product Details</DialogTitle>
+          </DialogHeader>
+          {viewingProduct && (
+            <div className='space-y-6'>
+              <div className='flex justify-center'>
+                {viewingProduct.image_url ? (
+                  <img src={viewingProduct.image_url} alt={viewingProduct.name} className='w-48 h-48 object-contain rounded-lg border p-2' />
+                ) : (
+                  <div className='w-48 h-48 flex items-center justify-center bg-muted rounded-lg border'>
+                    <ImageIcon className='w-16 h-16 text-muted-foreground/50' />
+                  </div>
+                )}
+              </div>
+              <div>
+                <h3 className='text-xl font-bold'>{viewingProduct.name}</h3>
+                <p className='text-sm text-muted-foreground'>{viewingProduct.brand}</p>
+              </div>
+              <div className='grid grid-cols-2 gap-4 text-sm'>
+                <div><p className='text-muted-foreground'>Buy Price</p><p className='font-semibold'>₹{viewingProduct.purchase_price}</p></div>
+                <div><p className='text-muted-foreground'>Sell Price</p><p className='font-semibold'>₹{viewingProduct.selling_price}</p></div>
+                <div><p className='text-muted-foreground'>Stock</p><p className='font-semibold'>{viewingProduct.quantity} units</p></div>
+                <div><p className='text-muted-foreground'>Location</p><p className='font-semibold'>{viewingProduct.location || 'N/A'}</p></div>
+                <div className='col-span-2'><p className='text-muted-foreground'>Compatible With</p><p className='font-semibold'>{viewingProduct.compatible_with || 'N/A'}</p></div>
+                {viewingProduct.imei && <div className='col-span-2'><p className='text-muted-foreground'>IMEI</p><p className='font-mono'>{viewingProduct.imei}</p></div>}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant='outline' className='w-full' onClick={() => setIsViewOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isSellOpen} onOpenChange={setIsSellOpen}>
         <DialogContent className='sm:max-w-[400px]'>
