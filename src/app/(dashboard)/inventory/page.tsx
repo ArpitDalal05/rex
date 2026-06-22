@@ -415,10 +415,10 @@ export default function InventoryPage() {
                   <TableHead className='w-[60px] lg:w-[80px]'>Photo</TableHead>
                   <TableHead>Product</TableHead>
                   <TableHead>Location</TableHead>
+                  <TableHead className='text-right'>Actions</TableHead>
                   <TableHead>Stock</TableHead>
                   <TableHead>Buy Price</TableHead>
                   <TableHead>Sell Price</TableHead>
-                  <TableHead className='text-right'>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -438,11 +438,6 @@ export default function InventoryPage() {
                       <div className='text-xs text-muted-foreground'>{product.brand}</div>
                     </TableCell>
                     <TableCell>{product.location || 'N/A'}</TableCell>
-                    <TableCell>
-                      <Badge variant={(product.quantity ?? 0) > 5 ? 'secondary' : 'destructive'}>{product.quantity}</Badge>  
-                    </TableCell>
-                    <TableCell>₹{product.purchase_price}</TableCell>
-                    <TableCell>₹{product.selling_price}</TableCell>
                     <TableCell className='text-right'>
                       <div className='flex justify-end gap-1'>
                         <Button variant='ghost' size='icon' title='View Details' onClick={() => handleView(product)}>
@@ -459,6 +454,11 @@ export default function InventoryPage() {
                         </Button>
                       </div>
                     </TableCell>
+                    <TableCell>
+                      <Badge variant={(product.quantity ?? 0) > 5 ? 'secondary' : 'destructive'}>{product.quantity}</Badge>  
+                    </TableCell>
+                    <TableCell>₹{product.purchase_price}</TableCell>
+                    <TableCell>₹{product.selling_price}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
