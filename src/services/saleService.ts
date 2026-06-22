@@ -16,7 +16,13 @@ export const saleService = {
         .select(`
           *,
           customers (
-            name
+            id,
+            name,
+            phone_number,
+            whatsapp_number,
+            current_mobile_model,
+            address,
+            category
           ),
           sale_items (
             *,

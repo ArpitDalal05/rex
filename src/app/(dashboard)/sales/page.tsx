@@ -40,12 +40,17 @@ export default function SalesPage() {
     setSelectedSale({
       id: sale.id,
       date: new Date(sale.created_at).toLocaleDateString(),
+      time: new Date(sale.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       customerName: sale.customers?.name || 'Walk-in Customer',
+      customerPhone: sale.customers?.phone_number || '',
+      customerWhatsapp: sale.customers?.whatsapp_number || '',
+      customerModel: sale.customers?.current_mobile_model || '',
+      customerAddress: sale.customers?.address || '',
+      customerCategory: sale.customers?.category || '',
       total: sale.total_amount,
       paymentMethod: sale.payment_method,
-      // Pass the first IMEI if available in the first sale item
       imei: sale.sale_items?.[0]?.imei || null,
-      productName: sale.sale_items?.[0]?.products?.name || 'Product'
+      items: sale.sale_items || []
     });
     setIsReceiptOpen(true);
   };
@@ -123,19 +128,51 @@ export default function SalesPage() {
           {selectedSale && (
             <div className='p-6 border rounded-lg bg-white text-black font-sans' id='receipt-content'>
               <div className='text-center border-b pb-4 mb-4'>
-                <h2 className='text-xl font-bold uppercase'>Rex Mobile Shop</h2>
-                <p className='text-xs'>123 Shop Street, Market Area</p>
-                <p className='text-xs'>Tel: +91 98765 43210</p>
+                <h2 className='text-xl font-bold uppercase'>Rex Mobile & Computers</h2>
+                <p className='text-xs'>Gujrati Market, Burhanpur</p>
+                <p className='text-xs'>Ph.No.: 9977800726</p>
               </div>
               <div className='space-y-2 text-sm mb-4'>
                 <div className='flex justify-between'><span>Receipt No:</span><span className='font-mono uppercase'>{selectedSale.id.split('-')[0]}</span></div>
                 <div className='flex justify-between'><span>Date:</span><span>{selectedSale.date}</span></div>
-                <div className='flex justify-between'><span>Customer:</span><span>{selectedSale.customerName}</span></div>
+                <div className='flex justify-between'><span>Time:</span><span>{selectedSale.time}</span></div>
                 {selectedSale.imei && <div className='flex justify-between font-mono text-xs'><span>IMEI:</span><span>{selectedSale.imei}</span></div>}
-                <div className='flex justify-between font-bold pt-2 border-t'>
-                  <span>Total Paid ({selectedSale.paymentMethod}):</span>
-                  <span>₹{selectedSale.total}</span>
-                </div>
+              </div>
+              
+              <div className='border-t pt-2 mb-4 text-xs space-y-1'>
+                <p className='font-semibold uppercase tracking-wider text-muted-foreground mb-1'>Customer Details</p>
+                <div className='flex justify-between'><span>Name:</span><span>{selectedSale.customerName}</span></div>
+                {selectedSale.customerPhone && <div className='flex justify-between'><span>Mobile No:</span><span>{selectedSale.customerPhone}</span></div>}
+                {selectedSale.customerWhatsapp && <div className='flex justify-between'><span>Whatsapp No:</span><span>{selectedSale.customerWhatsapp}</span></div>}
+                {selectedSale.customerModel && <div className='flex justify-between'><span>Mobile Model:</span><span>{selectedSale.customerModel}</span></div>}
+                {selectedSale.customerAddress && <div className='flex justify-between'><span>Address/Area:</span><span>{selectedSale.customerAddress}</span></div>}
+                {selectedSale.customerCategory && <div className='flex justify-between'><span>Category:</span><span>{selectedSale.customerCategory}</span></div>}
+              </div>
+
+              <Table>
+                <TableHeader><TableRow className='hover:bg-transparent border-b-2'><TableHead className='px-0 text-black h-8'>Item</TableHead><TableHead className='text-center text-black h-8'>Qty</TableHead><TableHead className='text-right px-0 text-black h-8'>Price</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  {selectedSale.items && selectedSale.items.length > 0 ? (
+                    selectedSale.items.map((item: any, idx: number) => (
+                      <TableRow key={idx} className='hover:bg-transparent border-none'>
+                        <TableCell className='px-0 py-2'>{item.products?.name || 'Product'}</TableCell>
+                        <TableCell className='text-center'>{item.quantity}</TableCell>
+                        <TableCell className='text-right px-0'>₹{item.price}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow className='hover:bg-transparent border-none'>
+                      <TableCell className='px-0 py-2'>{selectedSale.productName}</TableCell>
+                      <TableCell className='text-center'>1</TableCell>
+                      <TableCell className='text-right px-0'>₹{selectedSale.total}</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+
+              <div className='border-t-2 mt-4 pt-2 text-lg font-bold flex justify-between'>
+                <span>Grand Total</span>
+                <span>₹{selectedSale.total}</span>
               </div>
               <div className='mt-8 text-center text-xs italic border-t pt-4'>
                 <p>Thank you for your business!</p>
@@ -149,15 +186,6 @@ export default function SalesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <style jsx global>{`
-        @media print {
-          body * { visibility: hidden; }
-          #receipt-content, #receipt-content * { visibility: visible; }
-          #receipt-content { position: absolute; left: 0; top: 0; width: 100%; border: none; }
-          .no-print { display: none !important; }
-        }
-      `}</style>
     </div>
   );
 }

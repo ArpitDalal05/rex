@@ -73,6 +73,12 @@ export default function InventoryPage() {
   const [sellImei, setSellImei] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState('walk-in');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const [customerName, setCustomerName] = useState('Walk-in Customer');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerWhatsapp, setCustomerWhatsapp] = useState('');
+  const [customerModel, setCustomerModel] = useState('');
+  const [customerAddress, setCustomerAddress] = useState('');
+  const [customerCategory, setCustomerCategory] = useState('Retailer');
 
   useEffect(() => {
     fetchData();
@@ -129,7 +135,35 @@ export default function InventoryPage() {
     setSellImei('');
     setSelectedCustomerId('walk-in');
     setPaymentMethod('Cash');
+    setCustomerName('Walk-in Customer');
+    setCustomerPhone('');
+    setCustomerWhatsapp('');
+    setCustomerModel('');
+    setCustomerAddress('');
+    setCustomerCategory('Retailer');
     setIsSellOpen(true);
+  };
+
+  const handleCustomerChange = (customerId: string) => {
+    setSelectedCustomerId(customerId);
+    if (customerId === 'walk-in') {
+      setCustomerName('Walk-in Customer');
+      setCustomerPhone('');
+      setCustomerWhatsapp('');
+      setCustomerModel('');
+      setCustomerAddress('');
+      setCustomerCategory('Retailer');
+    } else {
+      const cust = customers.find(c => c.id === customerId);
+      if (cust) {
+        setCustomerName(cust.name || '');
+        setCustomerPhone(cust.phone_number || '');
+        setCustomerWhatsapp(cust.whatsapp_number || '');
+        setCustomerModel(cust.current_mobile_model || '');
+        setCustomerAddress(cust.address || '');
+        setCustomerCategory(cust.category || 'Retailer');
+      }
+    }
   };
 
   const onProductSubmit = async (data: Product) => {
@@ -174,8 +208,38 @@ export default function InventoryPage() {
 
     try {
       setIsSubmitting(true);
+      
+      let customerId: string | null = null;
+      let finalCustomerName = customerName || 'Walk-in Customer';
+
+      if (selectedCustomerId === 'walk-in') {
+        // If the user filled in a custom name or other details, create a new customer record
+        if (customerName && customerName !== 'Walk-in Customer') {
+          const newCust = await customerService.addCustomer({
+            name: customerName,
+            phone_number: customerPhone || null,
+            whatsapp_number: customerWhatsapp || null,
+            current_mobile_model: customerModel || null,
+            address: customerAddress || null,
+            category: customerCategory || null,
+          });
+          customerId = newCust.id || null;
+        }
+      } else {
+        // Update existing customer record with any edited values
+        await customerService.updateCustomer(selectedCustomerId, {
+          name: customerName,
+          phone_number: customerPhone || null,
+          whatsapp_number: customerWhatsapp || null,
+          current_mobile_model: customerModel || null,
+          address: customerAddress || null,
+          category: customerCategory || null,
+        });
+        customerId = selectedCustomerId;
+      }
+
       const salePayload = {
-        customer_id: selectedCustomerId === 'walk-in' ? null : selectedCustomerId,
+        customer_id: customerId,
         total_amount: sellPrice * sellQuantity,
         payment_method: paymentMethod
       };
@@ -189,14 +253,16 @@ export default function InventoryPage() {
 
       const result = await saleService.recordSale(salePayload, itemsPayload);
 
-      const customerName = selectedCustomerId === 'walk-in'
-        ? 'Walk-in Customer'
-        : customers.find(c => c.id === selectedCustomerId)?.name || 'Customer';
-
       setLastSale({
         id: result.id,
         date: new Date().toLocaleDateString(),
-        customerName,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        customerName: finalCustomerName,
+        customerPhone: customerPhone,
+        customerWhatsapp: customerWhatsapp,
+        customerModel: customerModel,
+        customerAddress: customerAddress,
+        customerCategory: customerCategory,
         productName: sellingProduct.name,
         quantity: sellQuantity,
         price: sellPrice,
@@ -348,10 +414,10 @@ export default function InventoryPage() {
                 <TableRow>
                   <TableHead className='w-[60px] lg:w-[80px]'>Photo</TableHead>
                   <TableHead>Product</TableHead>
+                  <TableHead>Location</TableHead>
                   <TableHead>Stock</TableHead>
                   <TableHead>Buy Price</TableHead>
                   <TableHead>Sell Price</TableHead>
-                  <TableHead>Location</TableHead>
                   <TableHead className='text-right'>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -371,12 +437,12 @@ export default function InventoryPage() {
                       <div className='font-medium'>{product.name}</div>
                       <div className='text-xs text-muted-foreground'>{product.brand}</div>
                     </TableCell>
+                    <TableCell>{product.location || 'N/A'}</TableCell>
                     <TableCell>
                       <Badge variant={(product.quantity ?? 0) > 5 ? 'secondary' : 'destructive'}>{product.quantity}</Badge>  
                     </TableCell>
                     <TableCell>₹{product.purchase_price}</TableCell>
                     <TableCell>₹{product.selling_price}</TableCell>
-                    <TableCell>{product.location || 'N/A'}</TableCell>
                     <TableCell className='text-right'>
                       <div className='flex justify-end gap-1'>
                         <Button variant='ghost' size='icon' title='View Details' onClick={() => handleView(product)}>
@@ -437,53 +503,117 @@ export default function InventoryPage() {
       </Dialog>
 
       <Dialog open={isSellOpen} onOpenChange={setIsSellOpen}>
-        <DialogContent className='sm:max-w-[400px]'>
+        <DialogContent className='sm:max-w-[480px] max-h-[90vh] overflow-y-auto'>
           <DialogHeader>
             <DialogTitle>Record Sale</DialogTitle>
             <DialogDescription>{sellingProduct?.name}</DialogDescription>
           </DialogHeader>
           <div className='grid gap-4 py-4'>
             <div className='grid gap-2'>
-              <label className='text-sm font-medium'>Customer</label>
-              <Select value={selectedCustomerId} onValueChange={(val) => setSelectedCustomerId(val || 'walk-in')}>
+              <label className='text-sm font-medium'>Select Existing Customer</label>
+              <Select value={selectedCustomerId} onValueChange={(val) => handleCustomerChange(val || 'walk-in')}>
                 <SelectTrigger><SelectValue placeholder='Select Customer' /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='walk-in'>Walk-in Customer</SelectItem>
+                  <SelectItem value='walk-in'>New / Walk-in Customer</SelectItem>
                   {customers.map(c => <SelectItem key={c.id} value={c.id!}>{c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            
-            <div className='grid gap-2'>
-              <label className='text-sm font-medium'>IMEI Number</label>
-              <Input 
-                placeholder='Scan or enter IMEI' 
-                value={sellImei} 
-                onChange={(e) => setSellImei(e.target.value)}
-              />
+
+            <div className='border-t pt-4 space-y-3'>
+              <h4 className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>Customer Information</h4>
+              <div className='grid gap-3'>
+                <div className='grid gap-1.5'>
+                  <label className='text-xs font-medium text-muted-foreground'>Customer Name</label>
+                  <Input 
+                    placeholder='Name' 
+                    value={customerName} 
+                    onChange={(e) => setCustomerName(e.target.value)}
+                  />
+                </div>
+                <div className='grid grid-cols-2 gap-3'>
+                  <div className='grid gap-1.5'>
+                    <label className='text-xs font-medium text-muted-foreground'>Mobile No</label>
+                    <Input 
+                      placeholder='Mobile' 
+                      value={customerPhone} 
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                    />
+                  </div>
+                  <div className='grid gap-1.5'>
+                    <label className='text-xs font-medium text-muted-foreground'>Whatsapp No</label>
+                    <Input 
+                      placeholder='Whatsapp' 
+                      value={customerWhatsapp} 
+                      onChange={(e) => setCustomerWhatsapp(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className='grid gap-1.5'>
+                  <label className='text-xs font-medium text-muted-foreground'>Current Mobile Model</label>
+                  <Input 
+                    placeholder='e.g., iPhone 14 Pro, Vivo V29' 
+                    value={customerModel} 
+                    onChange={(e) => setCustomerModel(e.target.value)}
+                  />
+                </div>
+                <div className='grid gap-1.5'>
+                  <label className='text-xs font-medium text-muted-foreground'>Address / Area</label>
+                  <Input 
+                    placeholder='Address' 
+                    value={customerAddress} 
+                    onChange={(e) => setCustomerAddress(e.target.value)}
+                  />
+                </div>
+                <div className='grid gap-1.5'>
+                  <label className='text-xs font-medium text-muted-foreground'>Customer Category</label>
+                  <Select value={customerCategory} onValueChange={(val) => setCustomerCategory(val || 'Retailer')}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='Retailer'>Retailer</SelectItem>
+                      <SelectItem value='Wholesaler'>Wholesaler</SelectItem>
+                      <SelectItem value='Regular'>Regular Customer</SelectItem>
+                      <SelectItem value='VIP'>VIP</SelectItem>
+                      <SelectItem value='Other'>Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
 
-            <div className='grid grid-cols-2 gap-4'>
+            <div className='border-t pt-4 space-y-3'>
+              <h4 className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>Sale Transaction</h4>
               <div className='grid gap-2'>
-                <label className='text-sm font-medium'>Quantity</label>
-                <Input type='number' value={sellQuantity} onChange={(e) => setSellQuantity(Number(e.target.value))} min='1' />
+                <label className='text-sm font-medium'>IMEI Number</label>
+                <Input 
+                  placeholder='Scan or enter IMEI' 
+                  value={sellImei} 
+                  onChange={(e) => setSellImei(e.target.value)}
+                />
               </div>
+
+              <div className='grid grid-cols-2 gap-4'>
+                <div className='grid gap-2'>
+                  <label className='text-sm font-medium'>Quantity</label>
+                  <Input type='number' value={sellQuantity} onChange={(e) => setSellQuantity(Number(e.target.value))} min='1' />
+                </div>
+                <div className='grid gap-2'>
+                  <label className='text-sm font-medium'>Price</label>
+                  <Input type='number' value={sellPrice} onChange={(e) => setSellPrice(Number(e.target.value))} />
+                </div>
+              </div>
+              
               <div className='grid gap-2'>
-                <label className='text-sm font-medium'>Price</label>
-                <Input type='number' value={sellPrice} onChange={(e) => setSellPrice(Number(e.target.value))} />
+                <label className='text-sm font-medium'>Payment Method</label>
+                <Select value={paymentMethod} onValueChange={(val) => setPaymentMethod(val || 'Cash')}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='Cash'>Cash</SelectItem>
+                    <SelectItem value='UPI'>UPI / Digital</SelectItem>
+                    <SelectItem value='Card'>Card</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
-            
-            <div className='grid gap-2'>
-              <label className='text-sm font-medium'>Payment Method</label>
-              <Select value={paymentMethod} onValueChange={(val) => setPaymentMethod(val || 'Cash')}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='Cash'>Cash</SelectItem>
-                  <SelectItem value='UPI'>UPI / Digital</SelectItem>
-                  <SelectItem value='Card'>Card</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             <div className='bg-muted p-3 rounded-lg flex justify-between items-center font-bold'>
@@ -507,16 +637,27 @@ export default function InventoryPage() {
           {lastSale && (
             <div className='p-6 border rounded-lg bg-white text-black font-sans' id='receipt-content'>
               <div className='text-center border-b pb-4 mb-4'>
-                <h2 className='text-xl font-bold uppercase'>Rex Mobile Shop</h2>
-                <p className='text-xs'>123 Shop Street, Market Area</p>
-                <p className='text-xs'>Tel: +91 98765 43210</p>
+                <h2 className='text-xl font-bold uppercase'>Rex Mobile & Computers</h2>
+                <p className='text-xs'>Gujrati Market, Burhanpur</p>
+                <p className='text-xs'>Ph.No.: 9977800726</p>
               </div>
               <div className='space-y-2 text-sm mb-4'>
                 <div className='flex justify-between'><span>Receipt No:</span><span className='font-mono uppercase'>{lastSale.id.split('-')[0]}</span></div>
                 <div className='flex justify-between'><span>Date:</span><span>{lastSale.date}</span></div>
-                <div className='flex justify-between'><span>Customer:</span><span>{lastSale.customerName}</span></div>
+                <div className='flex justify-between'><span>Time:</span><span>{lastSale.time}</span></div>
                 {lastSale.imei && <div className='flex justify-between font-mono text-xs'><span>IMEI:</span><span>{lastSale.imei}</span></div>}
               </div>
+              
+              <div className='border-t pt-2 mb-4 text-xs space-y-1'>
+                <p className='font-semibold uppercase tracking-wider text-muted-foreground mb-1'>Customer Details</p>
+                <div className='flex justify-between'><span>Name:</span><span>{lastSale.customerName}</span></div>
+                {lastSale.customerPhone && <div className='flex justify-between'><span>Mobile No:</span><span>{lastSale.customerPhone}</span></div>}
+                {lastSale.customerWhatsapp && <div className='flex justify-between'><span>Whatsapp No:</span><span>{lastSale.customerWhatsapp}</span></div>}
+                {lastSale.customerModel && <div className='flex justify-between'><span>Mobile Model:</span><span>{lastSale.customerModel}</span></div>}
+                {lastSale.customerAddress && <div className='flex justify-between'><span>Address/Area:</span><span>{lastSale.customerAddress}</span></div>}
+                {lastSale.customerCategory && <div className='flex justify-between'><span>Category:</span><span>{lastSale.customerCategory}</span></div>}
+              </div>
+
               <Table>
                 <TableHeader><TableRow className='hover:bg-transparent border-b-2'><TableHead className='px-0 text-black h-8'>Item</TableHead><TableHead className='text-center text-black h-8'>Qty</TableHead><TableHead className='text-right px-0 text-black h-8'>Price</TableHead></TableRow></TableHeader>
                 <TableBody>
@@ -539,15 +680,6 @@ export default function InventoryPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
-      <style jsx global>{`
-        @media print {
-          body * { visibility: hidden; }
-          #receipt-content, #receipt-content * { visibility: visible; }
-          #receipt-content { position: absolute; left: 0; top: 0; width: 100%; border: none; }
-          .no-print { display: none !important; }
-        }
-      `}</style>
     </div>
   );
 }

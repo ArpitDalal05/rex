@@ -128,3 +128,65 @@
     @apply font-sans;
   }
 }
+
+@media print {
+  /* Hide all main app contents */
+  body > *:not([data-slot="dialog-portal"]) {
+    display: none !important;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  [data-slot="dialog-portal"] {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    background: white !important;
+  }
+
+  /* Hide overlays, buttons, header/footer of dialog */
+  [data-slot="dialog-overlay"],
+  [data-slot="dialog-close"],
+  [data-slot="dialog-header"],
+  [data-slot="dialog-footer"],
+  .no-print {
+    display: none !important;
+  }
+
+  /* Override Dialog Content styles for printing */
+  [data-slot="dialog-content"] {
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Fix for receipt container */
+  #receipt-content {
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    background: white !important;
+    color: black !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}

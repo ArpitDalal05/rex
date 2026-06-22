@@ -21,6 +21,10 @@ CREATE TABLE customers (
     name TEXT NOT NULL,
     phone_number TEXT,
     email TEXT,
+    whatsapp_number TEXT,
+    current_mobile_model TEXT,
+    address TEXT,
+    category TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
