@@ -68,3 +68,14 @@ CREATE POLICY "Authenticated users can manage customers" ON customers FOR ALL TO
 CREATE POLICY "Authenticated users can manage sales" ON sales FOR ALL TO authenticated USING (true) WITH CHECK (true);       
 CREATE POLICY "Authenticated users can manage sale_items" ON sale_items FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Authenticated users can manage profiles" ON profiles FOR ALL TO authenticated USING (true) WITH CHECK (true); 
+
+-- 6. Role Permissions Table
+CREATE TABLE role_permissions (
+    role TEXT PRIMARY KEY,
+    permissions JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE role_permissions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Authenticated users can manage role_permissions" ON role_permissions FOR ALL TO authenticated USING (true) WITH CHECK (true);
+

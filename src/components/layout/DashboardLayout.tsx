@@ -13,7 +13,8 @@ import {
   LogOut,
   Smartphone,
   Menu,
-  X
+  X,
+  Lock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -21,9 +22,12 @@ import { Button } from '@/components/ui/button';
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, href: '/' },
   { label: 'Inventory', icon: Package, href: '/inventory' },
+  { label: 'Products (Cards)', icon: Smartphone, href: '/products' },
   { label: 'Sales', icon: ShoppingCart, href: '/sales' },
   { label: 'Customers', icon: Users, href: '/customers' },
+  { label: 'Staff Directory', icon: Users, href: '/users' },
   { label: 'Reports', icon: BarChart3, href: '/reports' },
+  { label: 'User Access', icon: Lock, href: '/user-access' },
 ];
 
 export default function DashboardLayout({
