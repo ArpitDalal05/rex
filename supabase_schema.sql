@@ -52,6 +52,7 @@ CREATE TABLE profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     role TEXT NOT NULL CHECK (role IN ('Admin', 'Employee')),
+    email TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

@@ -21,6 +21,17 @@ import {
 } from "lucide-react";
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
+import { createClient } from '@supabase/supabase-js';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Profile {
   id: string;
@@ -35,6 +46,104 @@ export default function UsersPage() {
   const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newRole, setNewRole] = useState<'Admin' | 'Employee'>('Employee');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const handleCreateEmployee = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setFormError(null);
+
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+    const sanitize = (val: string) => {
+      let cleaned = val.replace(/[\u0000-\u001F\u007F-\u009F]/g, "").trim();
+      return cleaned.endsWith('/') ? cleaned.slice(0, -1) : cleaned;
+    };
+
+    const cleanUrl = sanitize(url);
+    const cleanKey = sanitize(key);
+
+    if (!cleanUrl || !cleanKey) {
+      setFormError("Configuration Error: Supabase URL/Anon Key is missing.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const tempSupabase = createClient(cleanUrl, cleanKey, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false
+        }
+      });
+
+      const { data: signUpData, error: signUpError } = await tempSupabase.auth.signUp({
+        email: newEmail,
+        password: newPassword,
+      });
+
+      if (signUpError) throw signUpError;
+
+      if (!signUpData?.user) {
+        throw new Error("Registration failed to create auth user.");
+      }
+
+      const userId = signUpData.user.id;
+
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (existingProfile) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            name: newName,
+            role: newRole,
+            email: newEmail,
+          })
+          .eq('id', userId);
+        
+        if (profileError) throw profileError;
+      } else {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: userId,
+              name: newName,
+              role: newRole,
+              email: newEmail,
+            }
+          ]);
+        
+        if (profileError) throw profileError;
+      }
+
+      setNewName("");
+      setNewEmail("");
+      setNewPassword("");
+      setNewRole("Employee");
+      setIsAddDialogOpen(false);
+      fetchUsers();
+    } catch (err: any) {
+      console.error("Error creating employee:", err);
+      setFormError(err.message || "Failed to register employee.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const mockUsers: Profile[] = [
     { id: '1', name: 'Arpit Dalal', role: 'Admin', email: 'arpit@rexmobile.com', created_at: '2026-06-15T00:00:00Z', status: 'Active' },
@@ -63,7 +172,7 @@ export default function UsersPage() {
           id: d.id,
           name: d.name,
           role: d.role as 'Admin' | 'Employee',
-          email: `${d.name.toLowerCase().replace(/\s+/g, '')}@rexmobile.com`,
+          email: d.email || `${d.name.toLowerCase().replace(/\s+/g, '')}@rexmobile.com`,
           created_at: d.created_at || new Date().toISOString(),
           status: (idx === 3 ? 'Suspended' : 'Active') as 'Active' | 'Suspended'
         }));
@@ -132,10 +241,92 @@ export default function UsersPage() {
           />
         </div>
 
-        <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white gap-2 shadow-[0_0_15px_rgba(37,99,235,0.4)]">
-          <UserPlus className="w-4 h-4" />
-          Add Employee
-        </Button>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger render={<Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white gap-2 shadow-[0_0_15px_rgba(37,99,235,0.4)]" />}>
+            <UserPlus className="w-4 h-4" />
+            Add Employee
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[450px] bg-slate-950 border-slate-900 text-white max-h-[90vh] overflow-y-auto">
+            <form onSubmit={handleCreateEmployee}>
+              <DialogHeader>
+                <DialogTitle>Add New Employee</DialogTitle>
+                <DialogDescription className="text-slate-400">
+                  Register a new staff account with system login access.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="grid gap-4 py-4">
+                {formError && (
+                  <div className="p-3 text-sm text-red-400 bg-red-950/40 border border-red-900/40 rounded-md">
+                    {formError}
+                  </div>
+                )}
+                
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-slate-200">Full Name</label>
+                  <Input 
+                    required 
+                    value={newName} 
+                    onChange={(e) => setNewName(e.target.value)} 
+                    placeholder="e.g. John Doe"
+                    className="bg-slate-900 border-slate-800 text-white placeholder-slate-500 focus-visible:ring-blue-600 focus-visible:border-blue-600"
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-slate-200">Email Address</label>
+                  <Input 
+                    type="email"
+                    required 
+                    value={newEmail} 
+                    onChange={(e) => setNewEmail(e.target.value)} 
+                    placeholder="e.g. john@rexmobile.com"
+                    className="bg-slate-900 border-slate-800 text-white placeholder-slate-500 focus-visible:ring-blue-600 focus-visible:border-blue-600"
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-slate-200">Password</label>
+                  <Input 
+                    type="password"
+                    required 
+                    value={newPassword} 
+                    onChange={(e) => setNewPassword(e.target.value)} 
+                    placeholder="At least 6 characters"
+                    className="bg-slate-900 border-slate-800 text-white placeholder-slate-500 focus-visible:ring-blue-600 focus-visible:border-blue-600"
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-slate-200">Role</label>
+                  <Select 
+                    value={newRole} 
+                    onValueChange={(val) => { if (val === 'Admin' || val === 'Employee') setNewRole(val); }}
+                  >
+                    <SelectTrigger className="bg-slate-900 border-slate-800 text-white">
+                      <SelectValue placeholder="Select Role" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-slate-850 text-white">
+                      <SelectItem value="Employee" className="hover:bg-slate-800 focus:bg-slate-800 text-white cursor-pointer">Employee</SelectItem>
+                      <SelectItem value="Admin" className="hover:bg-slate-800 focus:bg-slate-800 text-white cursor-pointer">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]"
+                >
+                  {isSubmitting && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
+                  Register Account
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Users Card Grid */}
