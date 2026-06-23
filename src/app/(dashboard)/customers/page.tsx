@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Plus, Search, Loader2, Edit, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { customerService, Customer } from '@/services/customerService';
 import { useForm } from 'react-hook-form';
@@ -17,6 +17,7 @@ export default function CustomersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const { register, handleSubmit, reset, watch, setValue } = useForm<Customer>();
   
@@ -52,19 +53,65 @@ export default function CustomersPage() {
     }
   };
 
+  const resetForm = () => {
+    reset({
+      name: "",
+      phone_number: "",
+      whatsapp_number: "",
+      current_mobile_model: "",
+      address: "",
+      category: "Retailer"
+    });
+    setEditingId(null);
+    setSameAsMobile(false);
+  };
+
   const onSubmit = async (data: Customer) => {
     try {
       setIsSubmitting(true);
-      await customerService.addCustomer(data);
+      if (editingId) {
+        await customerService.updateCustomer(editingId, data);
+      } else {
+        await customerService.addCustomer(data);
+      }
       setIsDialogOpen(false);
-      reset();
-      setSameAsMobile(false);
+      resetForm();
       fetchCustomers();
     } catch (error: any) {
-      console.error("Error adding customer:", error);
-      alert(error.message || "Failed to add customer.");
+      console.error("Error saving customer:", error);
+      alert(error.message || "Failed to save customer.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEdit = (customer: Customer) => {
+    setEditingId(customer.id || null);
+    reset({
+      ...customer,
+      phone_number: customer.phone_number || "",
+      whatsapp_number: customer.whatsapp_number || "",
+      current_mobile_model: customer.current_mobile_model || "",
+      address: customer.address || "",
+      category: customer.category || "Retailer"
+    });
+    if (customer.whatsapp_number && customer.whatsapp_number === customer.phone_number) {
+      setSameAsMobile(true);
+    } else {
+      setSameAsMobile(false);
+    }
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this customer?")) {
+      try {
+        await customerService.deleteCustomer(id);
+        fetchCustomers();
+      } catch (error: any) {
+        console.error("Error deleting customer:", error);
+        alert("Failed to delete customer.");
+      }
     }
   };
 
@@ -84,8 +131,7 @@ export default function CustomersPage() {
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
           if (!open) {
-            reset();
-            setSameAsMobile(false);
+            resetForm();
           }
         }}>
           <DialogTrigger render={<Button className="gap-2" />}>
@@ -95,7 +141,7 @@ export default function CustomersPage() {
           <DialogContent className="sm:max-w-[450px] max-h-[90vh] overflow-y-auto">
             <form onSubmit={handleSubmit(onSubmit)}>
               <DialogHeader>
-                <DialogTitle>Customers detail</DialogTitle>
+                <DialogTitle>{editingId ? 'Edit Customer Details' : 'Customers detail'}</DialogTitle>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
@@ -198,6 +244,7 @@ export default function CustomersPage() {
                   <TableHead>Address/Area</TableHead>
                   <TableHead>Cust Category</TableHead>
                   <TableHead>Date Added</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -210,11 +257,33 @@ export default function CustomersPage() {
                     <TableCell>{customer.address || "N/A"}</TableCell>
                     <TableCell>{customer.category || "N/A"}</TableCell>
                     <TableCell>{new Date(customer.created_at!).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-blue-600" 
+                          title="Edit"
+                          onClick={() => handleEdit(customer)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-destructive" 
+                          title="Delete"
+                          onClick={() => customer.id && handleDelete(customer.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
                 {filteredCustomers.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       No customers found.
                     </TableCell>
                   </TableRow>
