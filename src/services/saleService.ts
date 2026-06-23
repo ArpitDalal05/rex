@@ -27,7 +27,9 @@ export const saleService = {
           sale_items (
             *,
             products (
-              name
+              name,
+              purchase_price,
+              selling_price
             )
           )
         `)

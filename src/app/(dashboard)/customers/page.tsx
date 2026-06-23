@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Loader2, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, Loader2, Edit, Trash2, Phone, Mail, MessageSquare, Download } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { customerService, Customer } from '@/services/customerService';
 import { useForm } from 'react-hook-form';
@@ -60,6 +60,7 @@ export default function CustomersPage() {
       whatsapp_number: "",
       current_mobile_model: "",
       address: "",
+      email: "",
       category: "Retailer"
     });
     setEditingId(null);
@@ -93,6 +94,7 @@ export default function CustomersPage() {
       whatsapp_number: customer.whatsapp_number || "",
       current_mobile_model: customer.current_mobile_model || "",
       address: customer.address || "",
+      email: customer.email || "",
       category: customer.category || "Retailer"
     });
     if (customer.whatsapp_number && customer.whatsapp_number === customer.phone_number) {
@@ -115,8 +117,37 @@ export default function CustomersPage() {
     }
   };
 
+  const exportToCSV = () => {
+    if (customers.length === 0) return;
+    
+    const headers = ["Name", "Mobile No", "Whatsapp No", "Current Mobile Model", "Address/Area", "Cust Category", "Email", "Date Added"];
+    const rows = customers.map(c => [
+      c.name,
+      c.phone_number || "",
+      c.whatsapp_number || "",
+      c.current_mobile_model || "",
+      c.address || "",
+      c.category || "",
+      c.email || "",
+      c.created_at ? new Date(c.created_at).toLocaleDateString() : ""
+    ]);
+    
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + [headers.join(","), ...rows.map(e => e.map(val => `"${(val || '').replace(/"/g, '""')}"`).join(","))].join("\n");
+      
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    const dateStr = new Date().toISOString().slice(0, 10);
+    link.setAttribute("download", `customers_export_${dateStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const filteredCustomers = customers.filter(c =>
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.current_mobile_model && c.current_mobile_model.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (c.phone_number && c.phone_number.includes(searchTerm))
   );
 
@@ -128,16 +159,22 @@ export default function CustomersPage() {
           <p className="text-muted-foreground">Manage your customer database.</p>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) {
-            resetForm();
-          }
-        }}>
-          <DialogTrigger render={<Button className="gap-2" />}>
-            <Plus className="w-4 h-4" />
-            Add Customer
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button onClick={exportToCSV} variant="outline" className="gap-2">
+            <Download className="w-4 h-4" />
+            Export CSV
+          </Button>
+
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) {
+              resetForm();
+            }
+          }}>
+            <DialogTrigger render={<Button className="gap-2" />}>
+              <Plus className="w-4 h-4" />
+              Add Customer
+            </DialogTrigger>
           <DialogContent className="sm:max-w-[450px] max-h-[90vh] overflow-y-auto">
             <form onSubmit={handleSubmit(onSubmit)}>
               <DialogHeader>
@@ -182,6 +219,10 @@ export default function CustomersPage() {
                   <Input {...register("address")} placeholder="e.g. Gujrati Market" />
                 </div>
                 <div className="grid gap-2">
+                  <label className="text-sm font-medium">Email (Optional)</label>
+                  <Input type="email" {...register("email")} placeholder="customer@example.com" />
+                </div>
+                <div className="grid gap-2">
                   <label className="text-sm font-medium">Cust Category</label>
                   <Select 
                     value={watch("category") || "Retailer"} 
@@ -210,6 +251,7 @@ export default function CustomersPage() {
           </DialogContent>
         </Dialog>
       </div>
+    </div>
 
       <Card>
         <CardHeader>
@@ -220,7 +262,7 @@ export default function CustomersPage() {
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name or phone..."
+                placeholder="Search by name, model or phone..."
                 className="pl-8 w-[250px]"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -243,7 +285,7 @@ export default function CustomersPage() {
                   <TableHead>Current Mobile Model</TableHead>
                   <TableHead>Address/Area</TableHead>
                   <TableHead>Cust Category</TableHead>
-                  <TableHead>Date Added</TableHead>
+                  <TableHead>communication</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -256,7 +298,53 @@ export default function CustomersPage() {
                     <TableCell>{customer.current_mobile_model || "N/A"}</TableCell>
                     <TableCell>{customer.address || "N/A"}</TableCell>
                     <TableCell>{customer.category || "N/A"}</TableCell>
-                    <TableCell>{new Date(customer.created_at!).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        {customer.phone_number ? (
+                          <a 
+                            href={`tel:${customer.phone_number}`}
+                            className="p-1 rounded text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
+                            title={`Call: ${customer.phone_number}`}
+                          >
+                            <Phone className="w-4 h-4" />
+                          </a>
+                        ) : (
+                          <span className="p-1 text-slate-300 dark:text-slate-700 cursor-not-allowed" title="No Mobile Number">
+                            <Phone className="w-4 h-4" />
+                          </span>
+                        )}
+                        
+                        {customer.whatsapp_number ? (
+                          <a 
+                            href={`https://wa.me/${customer.whatsapp_number.replace(/[^0-9]/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1 rounded text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
+                            title={`WhatsApp: ${customer.whatsapp_number}`}
+                          >
+                            <MessageSquare className="w-4 h-4" />
+                          </a>
+                        ) : (
+                          <span className="p-1 text-slate-300 dark:text-slate-700 cursor-not-allowed" title="No Whatsapp Number">
+                            <MessageSquare className="w-4 h-4" />
+                          </span>
+                        )}
+
+                        {customer.email ? (
+                          <a 
+                            href={`mailto:${customer.email}`}
+                            className="p-1 rounded text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-colors"
+                            title={`Mail: ${customer.email}`}
+                          >
+                            <Mail className="w-4 h-4" />
+                          </a>
+                        ) : (
+                          <span className="p-1 text-slate-300 dark:text-slate-700 cursor-not-allowed" title="No Email Address">
+                            <Mail className="w-4 h-4" />
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         <Button 
