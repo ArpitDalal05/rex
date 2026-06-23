@@ -146,10 +146,7 @@ export default function UsersPage() {
   };
 
   const mockUsers: Profile[] = [
-    { id: '1', name: 'Arpit Dalal', role: 'Admin', email: 'arpit@rexmobile.com', created_at: '2026-06-15T00:00:00Z', status: 'Active' },
-    { id: '2', name: 'Rahul Sharma', role: 'Employee', email: 'rahul@rexmobile.com', created_at: '2026-06-16T00:00:00Z', status: 'Active' },
-    { id: '3', name: 'Priya Patel', role: 'Employee', email: 'priya@rexmobile.com', created_at: '2026-06-18T00:00:00Z', status: 'Active' },
-    { id: '4', name: 'Amit Verma', role: 'Employee', email: 'amit@rexmobile.com', created_at: '2026-06-20T00:00:00Z', status: 'Suspended' }
+    { id: '1', name: 'Arpit Dalal', role: 'Admin', email: 'arpit@rexmobile.com', created_at: '2026-06-15T00:00:00Z', status: 'Active' }
   ];
 
   useEffect(() => {
