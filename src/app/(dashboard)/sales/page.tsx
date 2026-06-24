@@ -137,7 +137,7 @@ export default function SalesPage() {
                 <div className='flex justify-between'><span>Receipt No:</span><span className='font-mono uppercase'>{selectedSale.id.split('-')[0]}</span></div>
                 <div className='flex justify-between'><span>Date:</span><span>{selectedSale.date}</span></div>
                 <div className='flex justify-between'><span>Time:</span><span>{selectedSale.time}</span></div>
-                {selectedSale.imei && <div className='flex justify-between font-mono text-xs'><span>IMEI:</span><span>{selectedSale.imei}</span></div>}
+                {selectedSale.imei && <div className='flex justify-between font-mono text-xs'><span>Serial No.:</span><span>{selectedSale.imei}</span></div>}
               </div>
               
               <div className='border-t pt-2 mb-4 text-xs space-y-1'>
@@ -156,14 +156,20 @@ export default function SalesPage() {
                   {selectedSale.items && selectedSale.items.length > 0 ? (
                     selectedSale.items.map((item: any, idx: number) => (
                       <TableRow key={idx} className='hover:bg-transparent border-none'>
-                        <TableCell className='px-0 py-2'>{item.products?.name || 'Product'}</TableCell>
+                        <TableCell className='px-0 py-2'>
+                          <div>{item.products?.name || 'Product'}</div>
+                          {item.imei && <div className='text-[10px] font-mono text-slate-500'>Serial No.: {item.imei}</div>}
+                        </TableCell>
                         <TableCell className='text-center'>{item.quantity}</TableCell>
                         <TableCell className='text-right px-0'>₹{item.price}</TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow className='hover:bg-transparent border-none'>
-                      <TableCell className='px-0 py-2'>{selectedSale.productName}</TableCell>
+                      <TableCell className='px-0 py-2'>
+                        <div>{selectedSale.productName}</div>
+                        {selectedSale.imei && <div className='text-[10px] font-mono text-slate-500'>Serial No.: {selectedSale.imei}</div>}
+                      </TableCell>
                       <TableCell className='text-center'>1</TableCell>
                       <TableCell className='text-right px-0'>₹{selectedSale.total}</TableCell>
                     </TableRow>

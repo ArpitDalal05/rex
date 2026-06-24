@@ -570,9 +570,9 @@ export default function InventoryPage() {
             <div className='border-t pt-4 space-y-3'>
               <h4 className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>Sale Transaction</h4>
               <div className='grid gap-2'>
-                <label className='text-sm font-medium'>IMEI Number</label>
+                <label className='text-sm font-medium'>Serial No. / IMEI</label>
                 <Input 
-                  placeholder='Scan or enter IMEI' 
+                  placeholder='Scan or enter Serial No. / IMEI' 
                   value={sellImei} 
                   onChange={(e) => setSellImei(e.target.value)}
                 />
@@ -631,7 +631,7 @@ export default function InventoryPage() {
                 <div className='flex justify-between'><span>Receipt No:</span><span className='font-mono uppercase'>{lastSale.id.split('-')[0]}</span></div>
                 <div className='flex justify-between'><span>Date:</span><span>{lastSale.date}</span></div>
                 <div className='flex justify-between'><span>Time:</span><span>{lastSale.time}</span></div>
-                {lastSale.imei && <div className='flex justify-between font-mono text-xs'><span>IMEI:</span><span>{lastSale.imei}</span></div>}
+                {lastSale.imei && <div className='flex justify-between font-mono text-xs'><span>Serial No.:</span><span>{lastSale.imei}</span></div>}
               </div>
               
               <div className='border-t pt-2 mb-4 text-xs space-y-1'>
@@ -647,7 +647,14 @@ export default function InventoryPage() {
               <Table>
                 <TableHeader><TableRow className='hover:bg-transparent border-b-2'><TableHead className='px-0 text-black h-8'>Item</TableHead><TableHead className='text-center text-black h-8'>Qty</TableHead><TableHead className='text-right px-0 text-black h-8'>Price</TableHead></TableRow></TableHeader>
                 <TableBody>
-                  <TableRow className='hover:bg-transparent border-none'><TableCell className='px-0 py-2'>{lastSale.productName}</TableCell><TableCell className='text-center'>{lastSale.quantity}</TableCell><TableCell className='text-right px-0'>₹{lastSale.price}</TableCell></TableRow>
+                  <TableRow className='hover:bg-transparent border-none'>
+                    <TableCell className='px-0 py-2'>
+                      <div>{lastSale.productName}</div>
+                      {lastSale.imei && <div className='text-[10px] font-mono text-slate-500'>Serial No.: {lastSale.imei}</div>}
+                    </TableCell>
+                    <TableCell className='text-center'>{lastSale.quantity}</TableCell>
+                    <TableCell className='text-right px-0'>₹{lastSale.price}</TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
               <div className='border-t-2 mt-4 pt-2 text-lg font-bold flex justify-between'>

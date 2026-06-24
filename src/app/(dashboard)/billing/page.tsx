@@ -523,11 +523,11 @@ export default function BillingPage() {
                       )}
 
                       <div className="grid gap-1">
-                        <label className="text-[10px] uppercase font-bold text-slate-500">IMEI Number (Optional)</label>
+                        <label className="text-[10px] uppercase font-bold text-slate-500">Serial No. / IMEI (Optional)</label>
                         <Input 
                           value={item.imei}
                           onChange={(e) => updateItemField(item.id, 'imei', e.target.value)}
-                          placeholder="IMEI / Serial"
+                          placeholder="Serial No. / IMEI"
                           className="bg-slate-900 border-slate-800 text-white placeholder-slate-600"
                         />
                       </div>
@@ -680,7 +680,7 @@ export default function BillingPage() {
                     <TableRow key={idx} className="hover:bg-transparent border-none">
                       <TableCell className="px-0 py-2">
                         <div>{item.name}</div>
-                        {item.imei && <div className="text-[10px] font-mono text-slate-500">IMEI: {item.imei}</div>}
+                        {item.imei && <div className="text-[10px] font-mono text-slate-500">Serial No.: {item.imei}</div>}
                       </TableCell>
                       <TableCell className="text-center">{item.quantity}</TableCell>
                       <TableCell className="text-right px-0">₹{item.price}</TableCell>
