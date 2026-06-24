@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useRouter } from 'next/navigation';
 import { productService, Product } from '@/services/productService';
 import { customerService, Customer } from '@/services/customerService';
 import { saleService } from '@/services/saleService';
@@ -40,6 +41,7 @@ interface BillingItem {
 }
 
 export default function BillingPage() {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -645,7 +647,12 @@ export default function BillingPage() {
       </div>
 
       {/* Printable Invoice Dialog */}
-      <Dialog open={isReceiptOpen} onOpenChange={setIsReceiptOpen}>
+      <Dialog open={isReceiptOpen} onOpenChange={(open) => {
+        setIsReceiptOpen(open);
+        if (!open) {
+          router.push('/sales');
+        }
+      }}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader className="no-print">
             <DialogTitle>Sale Successful</DialogTitle>
@@ -706,7 +713,10 @@ export default function BillingPage() {
           )}
           <DialogFooter className="no-print flex-col sm:flex-row gap-2">
             <Button className="flex-1 gap-2" onClick={handlePrint}><Printer className="w-4 h-4" /> Print</Button>
-            <Button variant="outline" className="flex-1" onClick={() => setIsReceiptOpen(false)}>Close</Button>
+            <Button variant="outline" className="flex-1" onClick={() => {
+              setIsReceiptOpen(false);
+              router.push('/sales');
+            }}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
