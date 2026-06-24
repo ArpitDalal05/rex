@@ -14,13 +14,15 @@ import {
   Smartphone,
   Menu,
   X,
-  Lock
+  Lock,
+  Receipt
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, href: '/' },
+  { label: 'Billing', icon: Receipt, href: '/billing' },
   { label: 'Inventory', icon: Package, href: '/inventory' },
   { label: 'Products (Cards)', icon: Smartphone, href: '/products' },
   { label: 'Sales', icon: ShoppingCart, href: '/sales' },
