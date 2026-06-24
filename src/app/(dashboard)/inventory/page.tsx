@@ -45,6 +45,7 @@ import { saleService } from '@/services/saleService';
 import { customerService, Customer } from '@/services/customerService';
 import { useForm } from 'react-hook-form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { printElement } from '@/lib/utils';
 
 export default function InventoryPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -209,33 +210,18 @@ export default function InventoryPage() {
     try {
       setIsSubmitting(true);
       
+      // Manage Customer Profile (Do NOT create or update automatically)
       let customerId: string | null = null;
-      let finalCustomerName = customerName || 'Walk-in Customer';
+      let finalCustomerName = 'Walk-in Customer';
 
-      if (selectedCustomerId === 'walk-in') {
-        // If the user filled in a custom name or other details, create a new customer record
-        if (customerName && customerName !== 'Walk-in Customer') {
-          const newCust = await customerService.addCustomer({
-            name: customerName,
-            phone_number: customerPhone || null,
-            whatsapp_number: customerWhatsapp || null,
-            current_mobile_model: customerModel || null,
-            address: customerAddress || null,
-            category: customerCategory || null,
-          });
-          customerId = newCust.id || null;
-        }
-      } else {
-        // Update existing customer record with any edited values
-        await customerService.updateCustomer(selectedCustomerId, {
-          name: customerName,
-          phone_number: customerPhone || null,
-          whatsapp_number: customerWhatsapp || null,
-          current_mobile_model: customerModel || null,
-          address: customerAddress || null,
-          category: customerCategory || null,
-        });
+      if (selectedCustomerId !== 'walk-in') {
         customerId = selectedCustomerId;
+        const cust = customers.find(c => c.id === selectedCustomerId);
+        if (cust) {
+          finalCustomerName = cust.name;
+        }
+      } else if (customerName && customerName !== 'Walk-in Customer') {
+        finalCustomerName = customerName;
       }
 
       const salePayload = {
@@ -283,7 +269,7 @@ export default function InventoryPage() {
   };
 
   const handlePrintReceipt = () => {
-    window.print();
+    printElement('receipt-content');
   };
 
   const handleDelete = async (id: string) => {

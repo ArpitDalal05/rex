@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { printElement } from '@/lib/utils';
 
 export default function SalesPage() {
   const [sales, setSales] = useState<any[]>([]);
@@ -56,7 +57,7 @@ export default function SalesPage() {
   };
 
   const handlePrint = () => {
-    window.print();
+    printElement('receipt-content');
   };
 
   return (

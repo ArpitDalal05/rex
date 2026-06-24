@@ -23,6 +23,7 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
+import { printElement } from "@/lib/utils";
 import { productService, Product } from '@/services/productService';
 import { customerService, Customer } from '@/services/customerService';
 import { saleService } from '@/services/saleService';
@@ -198,32 +199,18 @@ export default function BillingPage() {
     try {
       setSubmitting(true);
 
-      // 2. Manage Customer Profile (Create new or Update details)
+      // 2. Manage Customer Profile (Do NOT create or update automatically)
       let customerId: string | null = null;
-      let finalCustomerName = customerName || 'Walk-in Customer';
+      let finalCustomerName = 'Walk-in Customer';
 
-      if (selectedCustomerId === 'walk-in') {
-        if (customerName && customerName !== 'Walk-in Customer') {
-          const newCust = await customerService.addCustomer({
-            name: customerName,
-            phone_number: customerPhone || null,
-            whatsapp_number: customerWhatsapp || null,
-            current_mobile_model: customerModel || null,
-            address: customerAddress || null,
-            category: customerCategory || null,
-          });
-          customerId = newCust.id || null;
-        }
-      } else {
-        await customerService.updateCustomer(selectedCustomerId, {
-          name: customerName,
-          phone_number: customerPhone || null,
-          whatsapp_number: customerWhatsapp || null,
-          current_mobile_model: customerModel || null,
-          address: customerAddress || null,
-          category: customerCategory || null,
-        });
+      if (selectedCustomerId !== 'walk-in') {
         customerId = selectedCustomerId;
+        const cust = customers.find(c => c.id === selectedCustomerId);
+        if (cust) {
+          finalCustomerName = cust.name;
+        }
+      } else if (customerName && customerName !== 'Walk-in Customer') {
+        finalCustomerName = customerName;
       }
 
       // 3. Process Custom Items (Register them in the product catalog on-the-fly)
@@ -314,7 +301,7 @@ export default function BillingPage() {
   };
 
   const handlePrint = () => {
-    window.print();
+    printElement('receipt-content');
   };
 
   return (

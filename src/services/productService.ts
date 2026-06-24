@@ -17,6 +17,7 @@ export const productService = {
     const { data, error } = await supabase
       .from('products')
       .select('*')
+      .neq('location', 'Direct Bill')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
