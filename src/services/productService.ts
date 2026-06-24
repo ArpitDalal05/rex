@@ -17,11 +17,10 @@ export const productService = {
     const { data, error } = await supabase
       .from('products')
       .select('*')
-      .neq('location', 'Direct Bill')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data;
+    return data ? data.filter(p => p.location !== 'Direct Bill') : [];
   },
 
   async addProduct(product: Product) {
