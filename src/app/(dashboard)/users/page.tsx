@@ -78,6 +78,19 @@ export default function UsersPage() {
     }
 
     try {
+      // 1. Check if email already exists in profiles table
+      const { data: duplicateEmailProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', newEmail)
+        .maybeSingle();
+
+      if (duplicateEmailProfile) {
+        setFormError("An employee account with this email address already exists.");
+        setIsSubmitting(false);
+        return;
+      }
+
       const tempSupabase = createClient(cleanUrl, cleanKey, {
         auth: {
           persistSession: false,
@@ -139,7 +152,15 @@ export default function UsersPage() {
       fetchUsers();
     } catch (err: any) {
       console.error("Error creating employee:", err);
-      setFormError(err.message || "Failed to register employee.");
+      let errorMsg = err.message || "Failed to register employee.";
+      
+      // If we hit email enumeration protection, Supabase returns a fake user ID,
+      // which then fails the profiles table foreign key constraint check.
+      if (errorMsg.includes("violates foreign key constraint") && errorMsg.includes("profiles_id_fkey")) {
+        errorMsg = "An account with this email address already exists or is pending confirmation.";
+      }
+      
+      setFormError(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
