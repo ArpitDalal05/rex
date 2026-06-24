@@ -46,6 +46,7 @@ import { customerService, Customer } from '@/services/customerService';
 import { useForm } from 'react-hook-form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { printElement } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
 
 export default function InventoryPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -209,6 +210,17 @@ export default function InventoryPage() {
 
     try {
       setIsSubmitting(true);
+
+      // Get the current sales count to calculate sequential invoice number
+      let receiptNumber = '01';
+      try {
+        const { count } = await supabase
+          .from('sales')
+          .select('*', { count: 'exact', head: true });
+        receiptNumber = String((count || 0) + 1).padStart(2, '0');
+      } catch (err) {
+        console.error('Error fetching sales count:', err);
+      }
       
       // Manage Customer Profile (Do NOT create or update automatically)
       let customerId: string | null = null;
@@ -241,7 +253,7 @@ export default function InventoryPage() {
 
       setLastSale({
         id: result.id,
-        invoice_number: result.invoice_number,
+        invoice_number: receiptNumber,
         date: new Date().toLocaleDateString(),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         customerName: finalCustomerName,

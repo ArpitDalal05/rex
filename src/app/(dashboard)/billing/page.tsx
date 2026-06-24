@@ -24,6 +24,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
 import { printElement } from "@/lib/utils";
+import { supabase } from '@/lib/supabase';
 import { productService, Product } from '@/services/productService';
 import { customerService, Customer } from '@/services/customerService';
 import { saleService } from '@/services/saleService';
@@ -199,6 +200,17 @@ export default function BillingPage() {
     try {
       setSubmitting(true);
 
+      // Get the current sales count to calculate sequential invoice number
+      let receiptNumber = '01';
+      try {
+        const { count } = await supabase
+          .from('sales')
+          .select('*', { count: 'exact', head: true });
+        receiptNumber = String((count || 0) + 1).padStart(2, '0');
+      } catch (err) {
+        console.error('Error fetching sales count:', err);
+      }
+
       // 2. Manage Customer Profile (Do NOT create or update automatically)
       let customerId: string | null = null;
       let finalCustomerName = 'Walk-in Customer';
@@ -265,7 +277,7 @@ export default function BillingPage() {
       // Set state to render receipt
       setLastSale({
         id: result.id,
-        invoice_number: result.invoice_number,
+        invoice_number: receiptNumber,
         date: new Date().toLocaleDateString(),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         customerName: finalCustomerName,

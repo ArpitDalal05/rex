@@ -37,10 +37,10 @@ export default function SalesPage() {
     }
   };
 
-  const handleOpenReceipt = (sale: any) => {
+  const handleOpenReceipt = (sale: any, receiptNum: string) => {
     setSelectedSale({
       id: sale.id,
-      invoice_number: sale.invoice_number,
+      invoice_number: receiptNum,
       date: new Date(sale.created_at).toLocaleDateString(),
       time: new Date(sale.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       customerName: sale.customers?.name || 'Walk-in Customer',
@@ -91,23 +91,26 @@ export default function SalesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sales.map((sale) => (
-                    <TableRow key={sale.id}>
-                      <TableCell className='px-4 font-mono text-xs'>{sale.invoice_number || sale.id?.split('-')[0]}</TableCell>
-                      <TableCell>{sale.customers?.name || 'Walk-in'}</TableCell>
-                      <TableCell className='font-medium'>₹{sale.total_amount}</TableCell>
-                      <TableCell>{sale.payment_method}</TableCell>
-                      <TableCell className='hidden sm:table-cell text-muted-foreground text-sm'>
-                        {new Date(sale.created_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className='text-right'>
-                        <Button variant='ghost' size='sm' className='gap-2' onClick={() => handleOpenReceipt(sale)}>
-                          <Printer className='w-4 h-4' />
-                          Receipt
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {sales.map((sale, idx) => {
+                    const receiptNum = String(sales.length - idx).padStart(2, '0');
+                    return (
+                      <TableRow key={sale.id}>
+                        <TableCell className='px-4 font-mono text-xs'>{receiptNum}</TableCell>
+                        <TableCell>{sale.customers?.name || 'Walk-in'}</TableCell>
+                        <TableCell className='font-medium'>₹{sale.total_amount}</TableCell>
+                        <TableCell>{sale.payment_method}</TableCell>
+                        <TableCell className='hidden sm:table-cell text-muted-foreground text-sm'>
+                          {new Date(sale.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className='text-right'>
+                          <Button variant='ghost' size='sm' className='gap-2' onClick={() => handleOpenReceipt(sale, receiptNum)}>
+                            <Printer className='w-4 h-4' />
+                            Receipt
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                   {sales.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={6} className='text-center py-8 text-muted-foreground'>
