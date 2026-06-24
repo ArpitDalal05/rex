@@ -84,6 +84,7 @@ export default function SalesPage() {
                   <TableRow>
                     <TableHead className='px-4'>Sale ID</TableHead>
                     <TableHead>Customer</TableHead>
+                    <TableHead>Product</TableHead>
                     <TableHead>Total Amount</TableHead>
                     <TableHead>Payment</TableHead>
                     <TableHead className='hidden sm:table-cell'>Date</TableHead>
@@ -93,10 +94,14 @@ export default function SalesPage() {
                 <TableBody>
                   {sales.map((sale, idx) => {
                     const receiptNum = String(sales.length - idx).padStart(2, '0');
+                    const productList = sale.sale_items && sale.sale_items.length > 0
+                      ? sale.sale_items.map((item: any) => item.products?.name || 'Product').join(', ')
+                      : 'No products';
                     return (
                       <TableRow key={sale.id}>
                         <TableCell className='px-4 font-mono text-xs'>{receiptNum}</TableCell>
                         <TableCell>{sale.customers?.name || 'Walk-in'}</TableCell>
+                        <TableCell className="max-w-[200px] truncate" title={productList}>{productList}</TableCell>
                         <TableCell className='font-medium'>₹{sale.total_amount}</TableCell>
                         <TableCell>{sale.payment_method}</TableCell>
                         <TableCell className='hidden sm:table-cell text-muted-foreground text-sm'>

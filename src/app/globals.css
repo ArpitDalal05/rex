@@ -130,12 +130,12 @@
 }
 
 @media print {
-  /* Hide the main application root entirely */
-  #app-root, .no-print {
+  /* Hide everything except the clone when printing a receipt */
+  body.printing-receipt > *:not(#print-receipt-clone) {
     display: none !important;
   }
 
-  html, body {
+  body.printing-receipt {
     margin: 0 !important;
     padding: 0 !important;
     height: auto !important;
@@ -146,74 +146,39 @@
     print-color-adjust: exact !important;
   }
 
-  /* Format portal container divs (siblings to #app-root) to print statically */
-  body > div:not(#app-root) {
+  body.printing-receipt #print-receipt-clone {
     display: block !important;
     position: static !important;
     width: 100% !important;
-    height: auto !important;
-    overflow: visible !important;
-    background: white !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  /* Hide modal overlays, close buttons, headers, and footers of dialog */
-  [data-slot="dialog-overlay"],
-  [data-slot="dialog-close"],
-  [data-slot="dialog-header"],
-  [data-slot="dialog-footer"] {
-    display: none !important;
-  }
-
-  /* Override Dialog Content container to print as a simple text block */
-  [data-slot="dialog-content"] {
-    position: static !important;
-    transform: none !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    border: none !important;
-    box-shadow: none !important;
-    background: white !important;
-    color: black !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  /* Format the receipt content for thermal printing */
-  #receipt-content {
-    border: none !important;
-    padding: 10px !important;
-    margin: 0 auto !important;
-    width: 100% !important;
     max-width: 380px !important; /* Standard width for 80mm thermal receipt printers */
+    margin: 0 auto !important;
+    padding: 10px !important;
     background: white !important;
     color: black !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
   }
 
   /* Force high contrast crisp black text on white paper for all receipt elements */
-  #receipt-content,
-  #receipt-content * {
+  body.printing-receipt #print-receipt-clone,
+  body.printing-receipt #print-receipt-clone * {
     color: black !important;
     background-color: transparent !important;
+    border-color: #555 !important;
   }
 
   /* Specific table and border styling for thermal receipts */
-  #receipt-content table {
+  body.printing-receipt #print-receipt-clone table {
     width: 100% !important;
     border-collapse: collapse !important;
   }
 
-  #receipt-content th,
-  #receipt-content td {
+  body.printing-receipt #print-receipt-clone th,
+  body.printing-receipt #print-receipt-clone td {
     color: black !important;
     border-bottom: 1px solid #ddd !important;
     padding: 6px 4px !important;
   }
 
-  #receipt-content th {
+  body.printing-receipt #print-receipt-clone th {
     font-weight: bold !important;
     border-bottom: 2px solid black !important;
   }
