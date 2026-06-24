@@ -265,6 +265,7 @@ export default function BillingPage() {
       // Set state to render receipt
       setLastSale({
         id: result.id,
+        invoice_number: result.invoice_number,
         date: new Date().toLocaleDateString(),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         customerName: finalCustomerName,
@@ -652,7 +653,7 @@ export default function BillingPage() {
                 <p className="text-xs">Ph.No.: 9977800726</p>
               </div>
               <div className="space-y-2 text-sm mb-4">
-                <div className="flex justify-between"><span>Receipt No:</span><span className="font-mono uppercase">{lastSale.id.split('-')[0]}</span></div>
+                <div className="flex justify-between"><span>Receipt No:</span><span className="font-mono uppercase">{lastSale.invoice_number || lastSale.id.split('-')[0]}</span></div>
                 <div className="flex justify-between"><span>Date:</span><span>{lastSale.date}</span></div>
                 <div className="flex justify-between"><span>Time:</span><span>{lastSale.time}</span></div>
               </div>

@@ -40,6 +40,7 @@ export default function SalesPage() {
   const handleOpenReceipt = (sale: any) => {
     setSelectedSale({
       id: sale.id,
+      invoice_number: sale.invoice_number,
       date: new Date(sale.created_at).toLocaleDateString(),
       time: new Date(sale.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       customerName: sale.customers?.name || 'Walk-in Customer',
@@ -92,7 +93,7 @@ export default function SalesPage() {
                 <TableBody>
                   {sales.map((sale) => (
                     <TableRow key={sale.id}>
-                      <TableCell className='px-4 font-mono text-xs'>{sale.id?.split('-')[0]}</TableCell>
+                      <TableCell className='px-4 font-mono text-xs'>{sale.invoice_number || sale.id?.split('-')[0]}</TableCell>
                       <TableCell>{sale.customers?.name || 'Walk-in'}</TableCell>
                       <TableCell className='font-medium'>₹{sale.total_amount}</TableCell>
                       <TableCell>{sale.payment_method}</TableCell>
@@ -134,7 +135,7 @@ export default function SalesPage() {
                 <p className='text-xs'>Ph.No.: 9977800726</p>
               </div>
               <div className='space-y-2 text-sm mb-4'>
-                <div className='flex justify-between'><span>Receipt No:</span><span className='font-mono uppercase'>{selectedSale.id.split('-')[0]}</span></div>
+                <div className='flex justify-between'><span>Receipt No:</span><span className='font-mono uppercase'>{selectedSale.invoice_number || selectedSale.id.split('-')[0]}</span></div>
                 <div className='flex justify-between'><span>Date:</span><span>{selectedSale.date}</span></div>
                 <div className='flex justify-between'><span>Time:</span><span>{selectedSale.time}</span></div>
                 {selectedSale.imei && <div className='flex justify-between font-mono text-xs'><span>Serial No.:</span><span>{selectedSale.imei}</span></div>}

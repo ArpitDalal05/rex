@@ -23,82 +23,75 @@ export function printElement(elementId: string) {
   const doc = iframe.contentWindow?.document;
   if (!doc) return;
 
+  // Clone all styles from parent head
+  const styles = document.querySelectorAll('link[rel="stylesheet"], style');
+  let stylesHtml = '';
+  styles.forEach(style => {
+    stylesHtml += style.outerHTML;
+  });
+
   doc.open();
   doc.write(`
     <html>
       <head>
         <title>Print Receipt</title>
+        ${stylesHtml}
         <style>
           body {
-            margin: 0;
-            padding: 10px;
+            margin: 0 !important;
+            padding: 10px !important;
+            background: white !important;
+            color: black !important;
             font-family: system-ui, -apple-system, sans-serif;
-            background: white;
-            color: black;
           }
           #receipt-print-wrapper {
-            width: 100%;
-            max-width: 380px;
-            margin: 0 auto;
+            width: 100% !important;
+            max-width: 380px !important;
+            margin: 0 auto !important;
+            background: white !important;
+            color: black !important;
           }
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            margin-bottom: 10px;
-          }
-          th, td {
-            text-align: left;
-            padding: 6px 4px;
-            border-bottom: 1px solid #ddd;
-            font-size: 13px;
-          }
-          th {
-            font-weight: bold;
-            border-bottom: 2px solid black;
-          }
-          .text-center { text-align: center; }
-          .text-right { text-align: right; }
-          .font-mono { font-family: monospace; }
-          .font-bold { font-weight: bold; }
-          .uppercase { text-transform: uppercase; }
-          .text-xs { font-size: 11px; }
-          .text-sm { font-size: 13px; }
-          .space-y-2 > * + * { margin-top: 8px; }
-          .space-y-1 > * + * { margin-top: 4px; }
-          .flex { display: flex; }
-          .justify-between { justify-content: space-between; }
-          .border-b { border-bottom: 1px solid #ddd; }
-          .border-t { border-top: 1px solid #ddd; }
-          .border-t-2 { border-top: 2px solid black; }
-          .pb-4 { padding-bottom: 16px; }
-          .mb-4 { margin-bottom: 16px; }
-          .mt-4 { margin-top: 16px; }
-          .pt-2 { padding-top: 8px; }
-          .pt-4 { padding-top: 16px; }
-          .italic { font-style: italic; }
           /* Reset color styles to high contrast black on white */
-          * {
+          #receipt-print-wrapper,
+          #receipt-print-wrapper * {
             color: black !important;
             background-color: transparent !important;
+            border-color: #ddd !important;
           }
+          /* Specific table and border styling for thermal receipts */
+          #receipt-print-wrapper table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+          }
+          #receipt-print-wrapper th, 
+          #receipt-print-wrapper td {
+            padding: 6px 4px !important;
+            border-bottom: 1px solid #ddd !important;
+          }
+          #receipt-print-wrapper th {
+            border-bottom: 2px solid black !important;
+          }
+          .text-center { text-align: center !important; }
+          .text-right { text-align: right !important; }
         </style>
       </head>
       <body>
         <div id="receipt-print-wrapper">
           ${element.innerHTML}
         </div>
-        <script>
-          window.onload = function() {
-            window.focus();
-            window.print();
-            setTimeout(function() {
-              window.frameElement.remove();
-            }, 1000);
-          };
-        </script>
       </body>
     </html>
   `);
   doc.close();
+
+  // Wait 500ms for style sheets to load, then print
+  setTimeout(() => {
+    if (iframe.contentWindow) {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    }
+    setTimeout(() => {
+      iframe.remove();
+    }, 1000);
+  }, 500);
 }
