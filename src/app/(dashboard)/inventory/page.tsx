@@ -222,7 +222,7 @@ export default function InventoryPage() {
         console.error('Error fetching sales count:', err);
       }
       
-      // Manage Customer Profile (Do NOT create or update automatically)
+      // Manage Customer Profile (Do NOT update automatically, but create Walk-in snapshot if custom name is typed)
       let customerId: string | null = null;
       let finalCustomerName = 'Walk-in Customer';
 
@@ -233,6 +233,16 @@ export default function InventoryPage() {
           finalCustomerName = cust.name;
         }
       } else if (customerName && customerName !== 'Walk-in Customer') {
+        // Create a Walk-in snapshot record in the database
+        const newCust = await customerService.addCustomer({
+          name: customerName,
+          phone_number: customerPhone || null,
+          whatsapp_number: customerWhatsapp || null,
+          current_mobile_model: customerModel || null,
+          address: customerAddress || null,
+          category: 'Walk-in',
+        });
+        customerId = newCust.id || null;
         finalCustomerName = customerName;
       }
 

@@ -17,6 +17,7 @@ export const customerService = {
     const { data, error } = await supabase
       .from('customers')
       .select('*')
+      .neq('category', 'Walk-in')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
