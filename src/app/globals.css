@@ -169,6 +169,8 @@
     padding: 10px !important;
     background: white !important;
     color: black !important;
+    border: none !important;
+    box-shadow: none !important;
   }
 
   /* Force high contrast crisp black text on white paper for all receipt elements */
