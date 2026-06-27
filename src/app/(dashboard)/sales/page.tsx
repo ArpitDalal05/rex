@@ -136,63 +136,65 @@ export default function SalesPage() {
             <DialogTitle>Sale Receipt</DialogTitle>
           </DialogHeader>
           {selectedSale && (
-            <div className='p-6 border rounded-lg bg-white text-black font-sans' id='receipt-content'>
-              <div className='text-center border-b pb-4 mb-4'>
-                <h2 className='text-xl font-bold uppercase'>Rex Mobile & Computers</h2>
-                <p className='text-xs'>Gujrati Market, Burhanpur</p>
-                <p className='text-xs'>Ph.No.: 9977800726</p>
-              </div>
-              <div className='space-y-2 text-sm mb-4'>
-                <div className='flex justify-between'><span>Receipt No:</span><span className='font-mono uppercase'>{selectedSale.invoice_number || selectedSale.id.split('-')[0]}</span></div>
-                <div className='flex justify-between'><span>Date:</span><span>{selectedSale.date}</span></div>
-                <div className='flex justify-between'><span>Time:</span><span>{selectedSale.time}</span></div>
-                {selectedSale.imei && <div className='flex justify-between font-mono text-xs'><span>Serial No.:</span><span>{selectedSale.imei}</span></div>}
-              </div>
-              
-              <div className='border-t pt-2 mb-4 text-xs space-y-1'>
-                <p className='font-semibold uppercase tracking-wider text-muted-foreground mb-1'>Customer Details</p>
-                <div className='flex justify-between'><span>Name:</span><span>{selectedSale.customerName}</span></div>
-                {selectedSale.customerPhone && <div className='flex justify-between'><span>Mobile No:</span><span>{selectedSale.customerPhone}</span></div>}
-                {selectedSale.customerWhatsapp && <div className='flex justify-between'><span>Whatsapp No:</span><span>{selectedSale.customerWhatsapp}</span></div>}
-                {selectedSale.customerModel && <div className='flex justify-between'><span>Mobile Model:</span><span>{selectedSale.customerModel}</span></div>}
-                {selectedSale.customerAddress && <div className='flex justify-between'><span>Address/Area:</span><span>{selectedSale.customerAddress}</span></div>}
-                {selectedSale.customerCategory && <div className='flex justify-between'><span>Category:</span><span>{selectedSale.customerCategory}</span></div>}
-              </div>
+            <div className="max-h-[50vh] sm:max-h-[60vh] overflow-y-auto pr-1">
+              <div className='p-6 border rounded-lg bg-white text-black font-sans' id='receipt-content'>
+                <div className='text-center border-b pb-4 mb-4'>
+                  <h2 className='text-xl font-bold uppercase'>Rex Mobile & Computers</h2>
+                  <p className='text-xs'>Gujrati Market, Burhanpur</p>
+                  <p className='text-xs'>Ph.No.: 9977800726</p>
+                </div>
+                <div className='space-y-2 text-sm mb-4'>
+                  <div className='flex justify-between'><span>Receipt No:</span><span className='font-mono uppercase'>{selectedSale.invoice_number || selectedSale.id.split('-')[0]}</span></div>
+                  <div className='flex justify-between'><span>Date:</span><span>{selectedSale.date}</span></div>
+                  <div className='flex justify-between'><span>Time:</span><span>{selectedSale.time}</span></div>
+                  {selectedSale.imei && <div className='flex justify-between font-mono text-xs'><span>Serial No.:</span><span>{selectedSale.imei}</span></div>}
+                </div>
+                
+                <div className='border-t pt-2 mb-4 text-xs space-y-1'>
+                  <p className='font-semibold uppercase tracking-wider text-muted-foreground mb-1'>Customer Details</p>
+                  <div className='flex justify-between'><span>Name:</span><span>{selectedSale.customerName}</span></div>
+                  {selectedSale.customerPhone && <div className='flex justify-between'><span>Mobile No:</span><span>{selectedSale.customerPhone}</span></div>}
+                  {selectedSale.customerWhatsapp && <div className='flex justify-between'><span>Whatsapp No:</span><span>{selectedSale.customerWhatsapp}</span></div>}
+                  {selectedSale.customerModel && <div className='flex justify-between'><span>Mobile Model:</span><span>{selectedSale.customerModel}</span></div>}
+                  {selectedSale.customerAddress && <div className='flex justify-between'><span>Address/Area:</span><span>{selectedSale.customerAddress}</span></div>}
+                  {selectedSale.customerCategory && <div className='flex justify-between'><span>Category:</span><span>{selectedSale.customerCategory}</span></div>}
+                </div>
 
-              <Table>
-                <TableHeader><TableRow className='hover:bg-transparent border-b-2'><TableHead className='px-0 text-black h-8'>Item</TableHead><TableHead className='text-center text-black h-8'>Qty</TableHead><TableHead className='text-right px-0 text-black h-8'>Price</TableHead></TableRow></TableHeader>
-                <TableBody>
-                  {selectedSale.items && selectedSale.items.length > 0 ? (
-                    selectedSale.items.map((item: any, idx: number) => (
-                      <TableRow key={idx} className='hover:bg-transparent border-none'>
+                <Table>
+                  <TableHeader><TableRow className='hover:bg-transparent border-b-2'><TableHead className='px-0 text-black h-8'>Item</TableHead><TableHead className='text-center text-black h-8'>Qty</TableHead><TableHead className='text-right px-0 text-black h-8'>Price</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {selectedSale.items && selectedSale.items.length > 0 ? (
+                      selectedSale.items.map((item: any, idx: number) => (
+                        <TableRow key={idx} className='hover:bg-transparent border-none'>
+                          <TableCell className='px-0 py-2'>
+                            <div>{item.products?.name || 'Product'}</div>
+                            {item.imei && <div className='text-[10px] font-mono text-slate-500'>Serial No.: {item.imei}</div>}
+                          </TableCell>
+                          <TableCell className='text-center'>{item.quantity}</TableCell>
+                          <TableCell className='text-right px-0'>₹{item.price}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow className='hover:bg-transparent border-none'>
                         <TableCell className='px-0 py-2'>
-                          <div>{item.products?.name || 'Product'}</div>
-                          {item.imei && <div className='text-[10px] font-mono text-slate-500'>Serial No.: {item.imei}</div>}
+                          <div>{selectedSale.productName}</div>
+                          {selectedSale.imei && <div className='text-[10px] font-mono text-slate-500'>Serial No.: {selectedSale.imei}</div>}
                         </TableCell>
-                        <TableCell className='text-center'>{item.quantity}</TableCell>
-                        <TableCell className='text-right px-0'>₹{item.price}</TableCell>
+                        <TableCell className='text-center'>1</TableCell>
+                        <TableCell className='text-right px-0'>₹{selectedSale.total}</TableCell>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow className='hover:bg-transparent border-none'>
-                      <TableCell className='px-0 py-2'>
-                        <div>{selectedSale.productName}</div>
-                        {selectedSale.imei && <div className='text-[10px] font-mono text-slate-500'>Serial No.: {selectedSale.imei}</div>}
-                      </TableCell>
-                      <TableCell className='text-center'>1</TableCell>
-                      <TableCell className='text-right px-0'>₹{selectedSale.total}</TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    )}
+                  </TableBody>
+                </Table>
 
-              <div className='border-t-2 mt-4 pt-2 text-lg font-bold flex justify-between'>
-                <span>Grand Total</span>
-                <span>₹{selectedSale.total}</span>
-              </div>
-              <div className='mt-8 text-center text-xs italic border-t pt-4'>
-                <p>Thank you for your business!</p>
-                <p>Visit again!</p>
+                <div className='border-t-2 mt-4 pt-2 text-lg font-bold flex justify-between'>
+                  <span>Grand Total</span>
+                  <span>₹{selectedSale.total}</span>
+                </div>
+                <div className='mt-8 text-center text-xs italic border-t pt-4'>
+                  <p>Thank you for your business!</p>
+                  <p>Visit again!</p>
+                </div>
               </div>
             </div>
           )}

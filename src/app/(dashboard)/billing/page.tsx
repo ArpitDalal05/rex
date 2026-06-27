@@ -668,56 +668,58 @@ export default function BillingPage() {
             <DialogTitle>Sale Successful</DialogTitle>
           </DialogHeader>
           {lastSale && (
-            <div className="p-6 border rounded-lg bg-white text-black font-sans" id="receipt-content">
-              <div className="text-center border-b pb-4 mb-4">
-                <h2 className="text-xl font-bold uppercase">Rex Mobile & Computers</h2>
-                <p className="text-xs">Gujrati Market, Burhanpur</p>
-                <p className="text-xs">Ph.No.: 9977800726</p>
-              </div>
-              <div className="space-y-2 text-sm mb-4">
-                <div className="flex justify-between"><span>Receipt No:</span><span className="font-mono uppercase">{lastSale.invoice_number || lastSale.id.split('-')[0]}</span></div>
-                <div className="flex justify-between"><span>Date:</span><span>{lastSale.date}</span></div>
-                <div className="flex justify-between"><span>Time:</span><span>{lastSale.time}</span></div>
-              </div>
-              
-              <div className="border-t pt-2 mb-4 text-xs space-y-1">
-                <p className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Customer Details</p>
-                <div className="flex justify-between"><span>Name:</span><span>{lastSale.customerName}</span></div>
-                {lastSale.customerPhone && <div className="flex justify-between"><span>Mobile No:</span><span>{lastSale.customerPhone}</span></div>}
-                {lastSale.customerWhatsapp && <div className="flex justify-between"><span>Whatsapp No:</span><span>{lastSale.customerWhatsapp}</span></div>}
-                {lastSale.customerModel && <div className="flex justify-between"><span>Mobile Model:</span><span>{lastSale.customerModel}</span></div>}
-                {lastSale.customerAddress && <div className="flex justify-between"><span>Address/Area:</span><span>{lastSale.customerAddress}</span></div>}
-                {lastSale.customerCategory && <div className="flex justify-between"><span>Category:</span><span>{lastSale.customerCategory}</span></div>}
-              </div>
+            <div className="max-h-[50vh] sm:max-h-[60vh] overflow-y-auto pr-1">
+              <div className="p-6 border rounded-lg bg-white text-black font-sans" id="receipt-content">
+                <div className="text-center border-b pb-4 mb-4">
+                  <h2 className="text-xl font-bold uppercase">Rex Mobile & Computers</h2>
+                  <p className="text-xs">Gujrati Market, Burhanpur</p>
+                  <p className="text-xs">Ph.No.: 9977800726</p>
+                </div>
+                <div className="space-y-2 text-sm mb-4">
+                  <div className="flex justify-between"><span>Receipt No:</span><span className="font-mono uppercase">{lastSale.invoice_number || lastSale.id.split('-')[0]}</span></div>
+                  <div className="flex justify-between"><span>Date:</span><span>{lastSale.date}</span></div>
+                  <div className="flex justify-between"><span>Time:</span><span>{lastSale.time}</span></div>
+                </div>
+                
+                <div className="border-t pt-2 mb-4 text-xs space-y-1">
+                  <p className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Customer Details</p>
+                  <div className="flex justify-between"><span>Name:</span><span>{lastSale.customerName}</span></div>
+                  {lastSale.customerPhone && <div className="flex justify-between"><span>Mobile No:</span><span>{lastSale.customerPhone}</span></div>}
+                  {lastSale.customerWhatsapp && <div className="flex justify-between"><span>Whatsapp No:</span><span>{lastSale.customerWhatsapp}</span></div>}
+                  {lastSale.customerModel && <div className="flex justify-between"><span>Mobile Model:</span><span>{lastSale.customerModel}</span></div>}
+                  {lastSale.customerAddress && <div className="flex justify-between"><span>Address/Area:</span><span>{lastSale.customerAddress}</span></div>}
+                  {lastSale.customerCategory && <div className="flex justify-between"><span>Category:</span><span>{lastSale.customerCategory}</span></div>}
+                </div>
 
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent border-b-2">
-                    <TableHead className="px-0 text-black h-8">Item</TableHead>
-                    <TableHead className="text-center text-black h-8">Qty</TableHead>
-                    <TableHead className="text-right px-0 text-black h-8">Price</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {lastSale.items.map((item: any, idx: number) => (
-                    <TableRow key={idx} className="hover:bg-transparent border-none">
-                      <TableCell className="px-0 py-2">
-                        <div>{item.name}</div>
-                        {item.imei && <div className="text-[10px] font-mono text-slate-500">Serial No.: {item.imei}</div>}
-                      </TableCell>
-                      <TableCell className="text-center">{item.quantity}</TableCell>
-                      <TableCell className="text-right px-0">₹{item.price}</TableCell>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent border-b-2">
+                      <TableHead className="px-0 text-black h-8">Item</TableHead>
+                      <TableHead className="text-center text-black h-8">Qty</TableHead>
+                      <TableHead className="text-right px-0 text-black h-8">Price</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              <div className="border-t-2 mt-4 pt-2 text-lg font-bold flex justify-between">
-                <span>Grand Total</span>
-                <span>₹{lastSale.total.toLocaleString()}</span>
-              </div>
-              <div className="mt-4 text-center text-xs italic border-t pt-4">
-                <p>Thank you for your business!</p>
-                <p>Goods once sold are not returnable.</p>
+                  </TableHeader>
+                  <TableBody>
+                    {lastSale.items.map((item: any, idx: number) => (
+                      <TableRow key={idx} className="hover:bg-transparent border-none">
+                        <TableCell className="px-0 py-2">
+                          <div>{item.name}</div>
+                          {item.imei && <div className="text-[10px] font-mono text-slate-500">Serial No.: {item.imei}</div>}
+                        </TableCell>
+                        <TableCell className="text-center">{item.quantity}</TableCell>
+                        <TableCell className="text-right px-0">₹{item.price}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <div className="border-t-2 mt-4 pt-2 text-lg font-bold flex justify-between">
+                  <span>Grand Total</span>
+                  <span>₹{lastSale.total.toLocaleString()}</span>
+                </div>
+                <div className="mt-4 text-center text-xs italic border-t pt-4">
+                  <p>Thank you for your business!</p>
+                  <p>Goods once sold are not returnable.</p>
+                </div>
               </div>
             </div>
           )}
