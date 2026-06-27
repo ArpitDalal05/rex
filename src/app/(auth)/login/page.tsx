@@ -41,7 +41,7 @@ export default function LoginPage() {
 
       if (error) throw error;
 
-      router.push('/inventory'); // Redirect to dashboard/inventory after successful login
+      router.push('/'); // Redirect to dashboard landing page after successful login
     } catch (err: any) {
       setError(err.message || 'Failed to login');
     } finally {

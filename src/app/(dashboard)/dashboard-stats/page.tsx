@@ -27,7 +27,7 @@ import { productService } from '@/services/productService';
 import { saleService } from '@/services/saleService';
 import { customerService } from '@/services/customerService';
 
-export default function DashboardPage() {
+export default function DashboardStatsPage() {
   const [stats, setStats] = useState({
     products: 0,
     lowStock: 0,
@@ -118,8 +118,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome back. Here's what's happening today.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Business Stats</h1>
+        <p className="text-muted-foreground">Detailed metrics of your shop's performance.</p>
       </div>
 
       {/* Stats Grid */}

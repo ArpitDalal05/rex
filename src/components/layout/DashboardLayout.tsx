@@ -15,13 +15,15 @@ import {
   Menu,
   X,
   Lock,
-  Receipt
+  Receipt,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
-  { label: 'Dashboard', icon: LayoutDashboard, href: '/' },
+  { label: 'Sony Showcase', icon: Sparkles, href: '/' },
+  { label: 'Business Stats', icon: LayoutDashboard, href: '/dashboard-stats' },
   { label: 'Billing', icon: Receipt, href: '/billing' },
   { label: 'Inventory', icon: Package, href: '/inventory' },
   { label: 'Products (Cards)', icon: Smartphone, href: '/products' },
