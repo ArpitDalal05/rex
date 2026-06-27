@@ -32,12 +32,9 @@ export function printElement(elementId: string) {
     clone.remove();
   };
 
-  // Modern browsers fire 'afterprint' after the print preview/print dialog closes
-  window.addEventListener('afterprint', cleanup, { once: true });
-
   // Trigger native print dialog
   window.print();
 
-  // Fallback cleanup to ensure we revert the UI even if 'afterprint' doesn't fire
-  setTimeout(cleanup, 3000);
+  // Revert the UI after 5 seconds to ensure print preview is fully generated
+  setTimeout(cleanup, 5000);
 }
