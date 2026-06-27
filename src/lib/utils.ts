@@ -10,6 +10,12 @@ export function printElement(elementId: string) {
   const element = document.getElementById(elementId);
   if (!element) return;
 
+  // Clean up any existing duplicate clone first
+  const existing = document.getElementById('print-receipt-clone');
+  if (existing) {
+    existing.remove();
+  }
+
   // Clone the receipt node to avoid modifying original layout/state
   const clone = element.cloneNode(true) as HTMLElement;
   clone.id = 'print-receipt-clone';
@@ -18,12 +24,20 @@ export function printElement(elementId: string) {
   // Add printing class to body
   document.body.classList.add('printing-receipt');
 
-  // Trigger native print dialog (blocks thread in most browsers until resolved)
-  window.print();
-
-  // Remove class and clone on next tick to restore page view
-  setTimeout(() => {
+  let cleaned = false;
+  const cleanup = () => {
+    if (cleaned) return;
+    cleaned = true;
     document.body.classList.remove('printing-receipt');
     clone.remove();
-  }, 100);
+  };
+
+  // Modern browsers fire 'afterprint' after the print preview/print dialog closes
+  window.addEventListener('afterprint', cleanup, { once: true });
+
+  // Trigger native print dialog
+  window.print();
+
+  // Fallback cleanup to ensure we revert the UI even if 'afterprint' doesn't fire
+  setTimeout(cleanup, 1000);
 }

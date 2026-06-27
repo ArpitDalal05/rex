@@ -129,6 +129,10 @@
   }
 }
 
+#print-receipt-clone {
+  display: none;
+}
+
 @media print {
   /* Hide everything except the clone when printing a receipt */
   body.printing-receipt > *:not(#print-receipt-clone) {
