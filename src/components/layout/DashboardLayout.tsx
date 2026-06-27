@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
-  { label: 'Sony Showcase', icon: Sparkles, href: '/' },
+  { label: 'Dashboard', icon: Sparkles, href: '/' },
   { label: 'Business Stats', icon: LayoutDashboard, href: '/dashboard-stats' },
   { label: 'Billing', icon: Receipt, href: '/billing' },
   { label: 'Inventory', icon: Package, href: '/inventory' },

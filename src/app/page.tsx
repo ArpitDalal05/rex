@@ -179,8 +179,8 @@ export default function RootPage() {
           <div className="absolute inset-0 bg-[#00D6FF]/20 blur-xl rounded-full scale-75 animate-pulse" />
         </div>
         
-        <h2 className="text-xl font-bold tracking-widest uppercase mb-2 text-white/90">Sony WH-1000XM6</h2>
-        <p className="text-xs text-white/40 mb-6 uppercase tracking-wider">Loading acoustic assets & blueprints</p>
+        <h2 className="text-xl font-bold tracking-widest uppercase mb-2 text-white/90">Rex Mobile & Computers</h2>
+        <p className="text-xs text-white/40 mb-6 uppercase tracking-wider">Loading system assets & blueprints</p>
         
         <div className="w-64 h-1 bg-white/5 rounded-full overflow-hidden relative">
           <div 
@@ -194,10 +194,10 @@ export default function RootPage() {
   }
 
   return (
-    <div ref={containerRef} className="relative w-full bg-[#050505] text-white overflow-x-hidden" style={{ height: '450vh' }}>
+    <div ref={containerRef} className="relative w-full bg-[#050505] text-white" style={{ height: '450vh' }}>
       
-      {/* Sticky Content Container */}
-      <div className="sticky top-0 left-0 w-full h-screen overflow-hidden flex flex-col justify-between z-10 bg-[#050505]">
+      {/* Fixed Content Container */}
+      <div className="fixed inset-0 w-full h-screen overflow-hidden flex flex-col justify-between z-10 bg-[#050505]">
         
         {/* Apple style Navbar */}
         <nav className={`fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-6 md:px-12 z-50 transition-all duration-500 border-b ${
@@ -208,15 +208,15 @@ export default function RootPage() {
           {/* Left logo */}
           <Link href="/" className="font-bold tracking-tight text-white/90 hover:text-white transition-colors text-sm md:text-base flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-[#00D6FF]" />
-            <span>Sony WH‑1000XM6</span>
+            <span>Rex Mobile & Computers</span>
           </Link>
 
-          {/* Center Links (Minimalist list) */}
+          {/* Center Links (Store Navigation) */}
           <div className="hidden md:flex items-center gap-8 text-xs font-medium text-white/60 tracking-wider uppercase">
-            <a href="#overview" className="hover:text-white transition-colors">Overview</a>
-            <a href="#technology" className="hover:text-white transition-colors">Technology</a>
-            <a href="#noise-cancelling" className="hover:text-white transition-colors">Noise Cancelling</a>
-            <a href="#specs" className="hover:text-white transition-colors">Specs</a>
+            <Link href="/dashboard-stats" className="hover:text-white transition-colors">Dashboard</Link>
+            <Link href="/inventory" className="hover:text-white transition-colors">Inventory</Link>
+            <Link href="/products" className="hover:text-white transition-colors">Products</Link>
+            <Link href="/sales" className="hover:text-white transition-colors">Sales</Link>
             <Link href="/billing" className="hover:text-[#00D6FF] transition-colors text-[#00D6FF]/90 font-bold">POS Billing</Link>
           </div>
 
@@ -258,12 +258,12 @@ export default function RootPage() {
               ? 'opacity-100 translate-y-0 scale-100' 
               : 'opacity-0 -translate-y-10 scale-95 pointer-events-none'
           }`}>
-            <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-[#00D6FF] mb-3">Sony WH‑1000XM6 Series</span>
+            <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-[#00D6FF] mb-3">Rex Mobile & Computers</span>
             <h1 className="text-4xl md:text-7xl font-extrabold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/60 mb-4 select-none">
-              Silence, perfected.
+              Experience WH‑1000XM6
             </h1>
             <p className="text-sm md:text-lg text-white/60 max-w-xl leading-relaxed">
-              Flagship wireless noise cancelling, re‑engineered for a world that never stops.
+              Flagship wireless audio engineering, now featured at Rex Mobile & Computers.
             </p>
           </div>
 
@@ -278,12 +278,12 @@ export default function RootPage() {
               <span>Acoustic Blueprints</span>
             </div>
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white/95 mb-4">
-              Precision-engineered for silence.
+              Precision sound, curated for you.
             </h2>
             <p className="text-sm md:text-base text-white/60 leading-relaxed space-y-4">
-              Custom drivers, sealed acoustic chambers, and optimized airflow deliver studio-grade clarity. 
+              Rex Mobile & Computers brings you the peak of audio innovation. Custom drivers, sealed acoustic chambers, and optimized air flow deliver studio-grade sound.
               <br /><br />
-              Every component is tuned for balance, power, and comfort—hour after hour.
+              Every detail is curated for maximum comfort and pure immersion.
             </p>
           </div>
 
@@ -298,20 +298,20 @@ export default function RootPage() {
               <span>Adaptive Processor V3</span>
             </div>
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white/95 mb-4">
-              Adaptive noise cancelling, redefined.
+              Silence the world around you.
             </h2>
             <ul className="text-sm md:text-base text-white/60 space-y-3">
               <li className="flex items-start gap-2.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#00D6FF] mt-2 shrink-0" />
-                <span>Multi-microphone array listens in every direction.</span>
+                <span>Multi-microphone array filters surrounding ambient noise.</span>
               </li>
               <li className="flex items-start gap-2.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#00D6FF] mt-2 shrink-0" />
-                <span>Real-time noise analysis adjusts to your environment.</span>
+                <span>Advanced processors dynamically adjust to your environment.</span>
               </li>
               <li className="flex items-start gap-2.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#00D6FF] mt-2 shrink-0" />
-                <span>Your music stays pure—planes, trains, and crowds fade away.</span>
+                <span>Your sound experience remains pure, curated by Rex Mobile.</span>
               </li>
             </ul>
           </div>
@@ -341,10 +341,10 @@ export default function RootPage() {
               : 'opacity-0 translate-y-10 scale-95 pointer-events-none'
           }`}>
             <h2 className="text-3xl md:text-6xl font-black tracking-tight text-white/95 mb-3">
-              Hear everything.<br />Feel nothing else.
+              Rex Mobile & Computers
             </h2>
             <p className="text-xs md:text-sm text-[#00D6FF] uppercase font-bold tracking-[0.2em] mb-6">
-              Designed for focus, crafted for comfort.
+              Your ultimate tech destination
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
@@ -352,7 +352,7 @@ export default function RootPage() {
                 href="/dashboard-stats"
                 className="bg-gradient-to-r from-[#0050FF] to-[#00D6FF] text-white px-8 py-3 rounded-full font-bold text-sm shadow-[0_0_25px_rgba(0,80,255,0.45)] hover:opacity-90 transition-all flex items-center gap-2 group"
               >
-                <span>Discover WH‑1000XM6</span>
+                <span>Go to Stats Dashboard</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
               
