@@ -260,14 +260,14 @@ export default function RootPage() {
           }`}>
             <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-[#00D6FF] mb-3">Rex Mobile & Computers</span>
             <h1 className="text-4xl md:text-7xl font-extrabold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/60 mb-4 select-none">
-              Experience WH‑1000XM6
+              Your Premium Tech Hub
             </h1>
             <p className="text-sm md:text-lg text-white/60 max-w-xl leading-relaxed">
-              Flagship wireless audio engineering, now featured at Rex Mobile & Computers.
+              Providing top-tier smartphones, custom cases, premium audio, essential accessories, and expert repair services.
             </p>
           </div>
 
-          {/* Beat 2: Engineering Reveal (15% to 40%) */}
+          {/* Beat 2: Smartphones & Protection (15% to 40%) */}
           <div className={`absolute left-6 md:left-24 max-w-lg transition-all duration-1000 transform ${
             scrollProgress >= 0.15 && scrollProgress < 0.40 
               ? 'opacity-100 translate-x-0' 
@@ -275,19 +275,19 @@ export default function RootPage() {
           }`}>
             <div className="flex items-center gap-2 text-xs font-bold text-[#00D6FF] uppercase tracking-wider mb-2">
               <Cpu className="w-4 h-4" />
-              <span>Acoustic Blueprints</span>
+              <span>Smartphones & Cases</span>
             </div>
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white/95 mb-4">
-              Precision sound, curated for you.
+              Latest Phones & Custom Cases.
             </h2>
             <p className="text-sm md:text-base text-white/60 leading-relaxed space-y-4">
-              Rex Mobile & Computers brings you the peak of audio innovation. Custom drivers, sealed acoustic chambers, and optimized air flow deliver studio-grade sound.
+              Upgrade to the newest iPhone, Samsung Galaxy, or flagship Google Pixel.
               <br /><br />
-              Every detail is curated for maximum comfort and pure immersion.
+              Protect your screen and device with our extensive catalog of shockproof, luxury, and personalized phone cases.
             </p>
           </div>
 
-          {/* Beat 3: Noise Cancelling & Microphones (40% to 65%) */}
+          {/* Beat 3: Audio Essentials (40% to 65%) */}
           <div className={`absolute right-6 md:right-24 max-w-lg transition-all duration-1000 transform ${
             scrollProgress >= 0.40 && scrollProgress < 0.65 
               ? 'opacity-100 translate-x-0' 
@@ -295,28 +295,28 @@ export default function RootPage() {
           }`}>
             <div className="flex items-center gap-2 text-xs font-bold text-[#00D6FF] uppercase tracking-wider mb-2">
               <Volume2 className="w-4 h-4" />
-              <span>Adaptive Processor V3</span>
+              <span>Immersive Audio</span>
             </div>
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white/95 mb-4">
-              Silence the world around you.
+              Headphones & Earbuds.
             </h2>
             <ul className="text-sm md:text-base text-white/60 space-y-3">
               <li className="flex items-start gap-2.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#00D6FF] mt-2 shrink-0" />
-                <span>Multi-microphone array filters surrounding ambient noise.</span>
+                <span>Premium over-ear wireless headphones with active noise cancellation.</span>
               </li>
               <li className="flex items-start gap-2.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#00D6FF] mt-2 shrink-0" />
-                <span>Advanced processors dynamically adjust to your environment.</span>
+                <span>Compact wireless earbuds with deep bass and smart touch controls.</span>
               </li>
               <li className="flex items-start gap-2.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#00D6FF] mt-2 shrink-0" />
-                <span>Your sound experience remains pure, curated by Rex Mobile.</span>
+                <span>High-fidelity audio for movies, workouts, and music on the go.</span>
               </li>
             </ul>
           </div>
 
-          {/* Beat 4: Sound & Upscaling (65% to 85%) */}
+          {/* Beat 4: Premium Accessories (65% to 85%) */}
           <div className={`absolute max-w-2xl flex flex-col items-center text-center transition-all duration-1000 transform ${
             scrollProgress >= 0.65 && scrollProgress < 0.85 
               ? 'opacity-100 translate-y-0 scale-100' 
@@ -324,17 +324,17 @@ export default function RootPage() {
           }`}>
             <div className="flex items-center gap-2 text-xs font-bold text-[#00D6FF] uppercase tracking-wider mb-2">
               <Disc className="w-4 h-4 animate-spin-slow" />
-              <span>Hi-Res Audio Wireless</span>
+              <span>Essential Power & Connect</span>
             </div>
             <h2 className="text-3xl md:text-6xl font-bold tracking-tight text-white/95 mb-4">
-              Immersive, lifelike sound.
+              Cables, Chargers & More.
             </h2>
             <p className="text-sm md:text-base text-white/60 leading-relaxed max-w-xl">
-              High-performance drivers unlock detail, depth, and texture in every track. AI-enhanced upscaling restores clarity to compressed audio, so every note feels alive.
+              Equip your tech with fast chargers, wireless pads, high-performance cables, screen protectors, car mounts, and laptop docks. Everything you need to power your tech stack.
             </p>
           </div>
 
-          {/* Beat 5: Reassembly & CTA (85% to 100%) */}
+          {/* Beat 5: Store CTA (85% to 100%) */}
           <div className={`absolute flex flex-col items-center text-center max-w-xl transition-all duration-1000 transform ${
             scrollProgress >= 0.85 
               ? 'opacity-100 translate-y-0 scale-100' 
@@ -344,7 +344,7 @@ export default function RootPage() {
               Rex Mobile & Computers
             </h2>
             <p className="text-xs md:text-sm text-[#00D6FF] uppercase font-bold tracking-[0.2em] mb-6">
-              Your ultimate tech destination
+              All your technology needs under one roof
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
@@ -365,7 +365,7 @@ export default function RootPage() {
             </div>
             
             <p className="text-[10px] text-white/30 mt-6 tracking-wide uppercase">
-              Engineered for airports, offices, and everything in between.
+              Premium devices. Top accessories. Lifetime hardware repair.
             </p>
           </div>
 
@@ -375,15 +375,15 @@ export default function RootPage() {
         <div className="relative z-10 p-6 flex justify-between items-center text-[10px] text-white/30 uppercase tracking-widest select-none">
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-[#00D6FF]" />
-            <span>Dual noise sensor tech</span>
+            <span>Phones & Tech Accessories</span>
           </div>
           
           <div className={`transition-opacity duration-500 ${scrollProgress > 0.05 ? 'opacity-0' : 'opacity-100 animate-bounce'}`}>
-            <span>Scroll to disassemble</span>
+            <span>Scroll to explore shop</span>
           </div>
           
           <div>
-            <span>Stereo spatial sound</span>
+            <span>Expert Technical Repair</span>
           </div>
         </div>
 
