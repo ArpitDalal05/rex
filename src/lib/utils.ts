@@ -39,5 +39,5 @@ export function printElement(elementId: string) {
   window.print();
 
   // Fallback cleanup to ensure we revert the UI even if 'afterprint' doesn't fire
-  setTimeout(cleanup, 1000);
+  setTimeout(cleanup, 3000);
 }

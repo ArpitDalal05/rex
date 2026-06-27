@@ -134,6 +134,15 @@
 }
 
 @media print {
+  /* Hide close buttons, print buttons, overlays and headers globally when printing */
+  .no-print,
+  [data-slot="dialog-overlay"],
+  [data-slot="dialog-close"],
+  [data-slot="dialog-header"],
+  [data-slot="dialog-footer"] {
+    display: none !important;
+  }
+
   /* Hide everything except the clone when printing a receipt */
   body.printing-receipt > *:not(#print-receipt-clone) {
     display: none !important;
