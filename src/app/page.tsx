@@ -280,18 +280,45 @@ export default function RootPage() {
         {/* Interactive Storytelling beats (Absolute Center Overlays) */}
         <div className="relative z-10 flex-1 flex items-center justify-center px-6 md:px-24">
           
-          {/* Beat 1: Intro (0% to 15%) */}
-          <div className={`absolute left-6 right-6 md:left-auto md:right-auto flex flex-col items-center text-center max-w-3xl transition-all duration-1000 transform ${
+          {/* Beat 1: Store CTA (0% to 15%) */}
+          <div className={`absolute left-6 right-6 md:left-auto md:right-auto flex flex-col items-center text-center max-w-xl transition-all duration-1000 transform ${
             scrollProgress < 0.15 
-              ? 'opacity-100 translate-y-0 scale-100' 
+              ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto' 
               : 'opacity-0 -translate-y-10 scale-95 pointer-events-none'
           }`}>
-            <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-[#00D6FF] mb-3">Rex Mobile & Computers</span>
-            <h1 className="text-3xl md:text-7xl font-extrabold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/60 mb-4 select-none">
-              Your Premium Tech Hub
+            <h1 className="text-3xl md:text-6xl font-black tracking-tight text-white/95 mb-3 select-none">
+              Rex Mobile & Computers
             </h1>
-            <p className="text-xs md:text-lg text-white/60 max-w-xl leading-relaxed">
-              Providing top-tier smartphones, custom cases, premium audio, essential accessories, and expert repair services.
+            <p className="text-xs md:text-sm text-[#00D6FF] uppercase font-bold tracking-[0.2em] mb-6">
+              All your technology needs under one roof
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+              <Link 
+                href="/inventory"
+                className="bg-white/5 hover:bg-white/10 text-white/80 hover:text-white px-8 py-3 rounded-full font-bold text-sm border border-white/10 transition-all min-w-[140px] flex items-center justify-center"
+              >
+                Inventory
+              </Link>
+              
+              <Link 
+                href="/billing"
+                className="bg-gradient-to-r from-[#0050FF] to-[#00D6FF] text-white px-8 py-3 rounded-full font-bold text-sm shadow-[0_0_25px_rgba(0,80,255,0.45)] hover:opacity-90 transition-all flex items-center justify-center gap-2 group min-w-[160px]"
+              >
+                <span>POS Billing</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              
+              <Link 
+                href="/sales"
+                className="bg-white/5 hover:bg-white/10 text-white/80 hover:text-white px-8 py-3 rounded-full font-bold text-sm border border-white/10 transition-all min-w-[140px] flex items-center justify-center"
+              >
+                Sales
+              </Link>
+            </div>
+            
+            <p className="text-[10px] text-white/30 mt-6 tracking-wide uppercase">
+              Premium devices. Top accessories. Lifetime hardware repair.
             </p>
           </div>
 
@@ -362,38 +389,18 @@ export default function RootPage() {
             </p>
           </div>
 
-          {/* Beat 5: Store CTA (85% to 100%) */}
-          <div className={`absolute left-6 right-6 md:left-auto md:right-auto flex flex-col items-center text-center max-w-xl transition-all duration-1000 transform ${
+          {/* Beat 5: Intro (85% to 100%) */}
+          <div className={`absolute left-6 right-6 md:left-auto md:right-auto flex flex-col items-center text-center max-w-3xl transition-all duration-1000 transform ${
             scrollProgress >= 0.85 
-              ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto' 
+              ? 'opacity-100 translate-y-0 scale-100' 
               : 'opacity-0 translate-y-10 scale-95 pointer-events-none'
           }`}>
-            <h2 className="text-2xl md:text-6xl font-black tracking-tight text-white/95 mb-3">
-              Rex Mobile & Computers
+            <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-[#00D6FF] mb-3">Rex Mobile & Computers</span>
+            <h2 className="text-3xl md:text-7xl font-extrabold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/60 mb-4 select-none">
+              Your Premium Tech Hub
             </h2>
-            <p className="text-xs md:text-sm text-[#00D6FF] uppercase font-bold tracking-[0.2em] mb-6">
-              All your technology needs under one roof
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
-              <Link 
-                href="/dashboard-stats"
-                className="bg-gradient-to-r from-[#0050FF] to-[#00D6FF] text-white px-8 py-3 rounded-full font-bold text-sm shadow-[0_0_25px_rgba(0,80,255,0.45)] hover:opacity-90 transition-all flex items-center gap-2 group"
-              >
-                <span>Go to Stats Dashboard</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              
-              <Link 
-                href="/billing"
-                className="bg-white/5 hover:bg-white/10 text-white/80 hover:text-white px-8 py-3 rounded-full font-bold text-sm border border-white/10 transition-all"
-              >
-                Go to POS Billing
-              </Link>
-            </div>
-            
-            <p className="text-[10px] text-white/30 mt-6 tracking-wide uppercase">
-              Premium devices. Top accessories. Lifetime hardware repair.
+            <p className="text-xs md:text-lg text-white/60 max-w-xl leading-relaxed">
+              Providing top-tier smartphones, custom cases, premium audio, essential accessories, and expert repair services.
             </p>
           </div>
 
