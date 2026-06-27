@@ -134,7 +134,8 @@
 }
 
 @media print {
-  /* Hide close buttons, print buttons, overlays and headers globally when printing */
+  /* Hide the main app root, close buttons, print buttons, overlays and headers globally when printing */
+  #app-root,
   .no-print,
   [data-slot="dialog-overlay"],
   [data-slot="dialog-close"],
