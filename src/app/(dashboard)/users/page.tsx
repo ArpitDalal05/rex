@@ -32,8 +32,6 @@ import {
   DialogTrigger 
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAuth } from '@/components/layout/AuthContext';
-import AccessDenied from '@/components/layout/AccessDenied';
 
 interface Profile {
   id: string;
@@ -45,12 +43,6 @@ interface Profile {
 }
 
 export default function UsersPage() {
-  const { role } = useAuth();
-
-  if (role !== 'Admin') {
-    return <AccessDenied />;
-  }
-
   const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");

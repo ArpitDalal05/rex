@@ -20,8 +20,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { saleService } from '@/services/saleService';
 import { productService } from '@/services/productService';
-import { useAuth } from '@/components/layout/AuthContext';
-import AccessDenied from '@/components/layout/AccessDenied';
 
 interface ChartPoint {
   dateStr: string;
@@ -30,12 +28,6 @@ interface ChartPoint {
 }
 
 export default function ReportsPage() {
-  const { role } = useAuth();
-
-  if (role !== 'Admin') {
-    return <AccessDenied />;
-  }
-
   const [sales, setSales] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

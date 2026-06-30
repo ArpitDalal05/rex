@@ -47,10 +47,8 @@ import { useForm } from 'react-hook-form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { printElement } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/components/layout/AuthContext';
 
 export default function InventoryPage() {
-  const { role } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -337,77 +335,75 @@ export default function InventoryPage() {
           <p className='text-sm text-muted-foreground'>Manage your product stock and details.</p>
         </div>
 
-        {role === 'Admin' && (
-          <Dialog open={isFormOpen} onOpenChange={(open) => {
-            setIsFormOpen(open);
-            if (!open) resetProductForm();
-          }}>
-            <DialogTrigger render={<Button className='gap-2 w-full sm:w-auto' />}>
-              <Plus className='w-4 h-4' />
-              Add Product
-            </DialogTrigger>
-            <DialogContent className='sm:max-w-[550px] max-h-[90vh] overflow-y-auto'>
-              <form onSubmit={handleSubmit(onProductSubmit)}>
-                <DialogHeader>
-                  <DialogTitle>{editingId ? 'Edit Product' : 'Add New Product'}</DialogTitle>
-                </DialogHeader>
-                <div className='grid gap-4 py-4'>
-                  <div className='flex flex-col items-center gap-4 py-2 border-2 border-dashed rounded-lg bg-muted/50 relative group'>
-                    {imagePreview ? (
-                      <img src={imagePreview} alt='Preview' className='w-32 h-32 object-contain rounded-md' />
-                    ) : (
-                      <div className='w-32 h-32 flex flex-col items-center justify-center text-muted-foreground'>
-                        <ImageIcon className='w-12 h-12 mb-2' />
-                        <span className='text-xs text-center px-4'>Click to upload</span>
-                      </div>
-                    )}
-                    <Input type='file' accept='image/*' className='absolute inset-0 opacity-0 cursor-pointer' onChange={handleImageChange} />
+        <Dialog open={isFormOpen} onOpenChange={(open) => {
+          setIsFormOpen(open);
+          if (!open) resetProductForm();
+        }}>
+          <DialogTrigger render={<Button className='gap-2 w-full sm:w-auto' />}>
+            <Plus className='w-4 h-4' />
+            Add Product
+          </DialogTrigger>
+          <DialogContent className='sm:max-w-[550px] max-h-[90vh] overflow-y-auto'>
+            <form onSubmit={handleSubmit(onProductSubmit)}>
+              <DialogHeader>
+                <DialogTitle>{editingId ? 'Edit Product' : 'Add New Product'}</DialogTitle>
+              </DialogHeader>
+              <div className='grid gap-4 py-4'>
+                <div className='flex flex-col items-center gap-4 py-2 border-2 border-dashed rounded-lg bg-muted/50 relative group'>
+                  {imagePreview ? (
+                    <img src={imagePreview} alt='Preview' className='w-32 h-32 object-contain rounded-md' />
+                  ) : (
+                    <div className='w-32 h-32 flex flex-col items-center justify-center text-muted-foreground'>
+                      <ImageIcon className='w-12 h-12 mb-2' />
+                      <span className='text-xs text-center px-4'>Click to upload</span>
+                    </div>
+                  )}
+                  <Input type='file' accept='image/*' className='absolute inset-0 opacity-0 cursor-pointer' onChange={handleImageChange} />
+                </div>
+                <div className='grid gap-2'>
+                  <label className='text-sm font-medium'>Product Name</label>
+                  <Input {...register('name', { required: true })} placeholder='e.g. iPhone 15 Pro' />
+                </div>
+                <div className='grid gap-2'>
+                  <label className='text-sm font-medium'>Compatible With</label>
+                  <Input {...register('compatible_with')} placeholder='e.g. Universal, iPhone 14, 15' />
+                </div>
+                <div className='grid grid-cols-2 gap-4'>
+                  <div className='grid gap-2'>
+                    <label className='text-sm font-medium'>Brand</label>
+                    <Input {...register('brand', { required: true })} placeholder='Apple, Samsung, etc.' />
                   </div>
                   <div className='grid gap-2'>
-                    <label className='text-sm font-medium'>Product Name</label>
-                    <Input {...register('name', { required: true })} placeholder='e.g. iPhone 15 Pro' />
-                  </div>
-                  <div className='grid gap-2'>
-                    <label className='text-sm font-medium'>Compatible With</label>
-                    <Input {...register('compatible_with')} placeholder='e.g. Universal, iPhone 14, 15' />
-                  </div>
-                  <div className='grid grid-cols-2 gap-4'>
-                    <div className='grid gap-2'>
-                      <label className='text-sm font-medium'>Brand</label>
-                      <Input {...register('brand', { required: true })} placeholder='Apple, Samsung, etc.' />
-                    </div>
-                    <div className='grid gap-2'>
-                      <label className='text-sm font-medium'>Location</label>
-                      <Input {...register('location')} placeholder='e.g. Shelf A1' />
-                    </div>
-                  </div>
-                  <div className='grid grid-cols-2 gap-4'>
-                    <div className='grid gap-2'>
-                      <label className='text-sm font-medium'>Purchase Price</label>
-                      <Input type='number' step='0.01' {...register('purchase_price', { required: true })} placeholder='₹' />
-                    </div>
-                    <div className='grid gap-2'>
-                      <label className='text-sm font-medium'>Selling Price</label>
-                      <Input type='number' step='0.01' {...register('selling_price', { required: true })} placeholder='₹' />
-                    </div>
-                  </div>
-                  <div className='grid grid-cols-1 gap-4'>
-                    <div className='grid gap-2'>
-                      <label className='text-sm font-medium'>Initial Quantity</label>
-                      <Input type='number' {...register('quantity', { required: true })} />
-                    </div>
+                    <label className='text-sm font-medium'>Location</label>
+                    <Input {...register('location')} placeholder='e.g. Shelf A1' />
                   </div>
                 </div>
-                <DialogFooter>
-                  <Button type='submit' disabled={isSubmitting} className='w-full'>
-                    {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-                    Save Product
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        )}
+                <div className='grid grid-cols-2 gap-4'>
+                  <div className='grid gap-2'>
+                    <label className='text-sm font-medium'>Purchase Price</label>
+                    <Input type='number' step='0.01' {...register('purchase_price', { required: true })} placeholder='₹' />
+                  </div>
+                  <div className='grid gap-2'>
+                    <label className='text-sm font-medium'>Selling Price</label>
+                    <Input type='number' step='0.01' {...register('selling_price', { required: true })} placeholder='₹' />
+                  </div>
+                </div>
+                <div className='grid grid-cols-1 gap-4'>
+                  <div className='grid gap-2'>
+                    <label className='text-sm font-medium'>Initial Quantity</label>
+                    <Input type='number' {...register('quantity', { required: true })} />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type='submit' disabled={isSubmitting} className='w-full'>
+                  {isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                  Save Product
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card className='overflow-hidden border-none shadow-sm'>
@@ -430,7 +426,7 @@ export default function InventoryPage() {
                   <TableHead>Location</TableHead>
                   <TableHead className='text-right'>Actions</TableHead>
                   <TableHead>Stock</TableHead>
-                  {role === 'Admin' && <TableHead>Buy Price</TableHead>}
+                  <TableHead>Buy Price</TableHead>
                   <TableHead>Sell Price</TableHead>
                 </TableRow>
               </TableHeader>
@@ -459,22 +455,18 @@ export default function InventoryPage() {
                         <Button variant='ghost' size='icon' className='h-8 w-8 text-green-600' title='Sell' onClick={() => handleSellInit(product)}>
                           <ShoppingCart className='h-4 w-4' />
                         </Button>
-                        {role === 'Admin' && (
-                          <>
-                            <Button variant='ghost' size='icon' className='h-8 w-8' title='Edit' onClick={() => handleEdit(product)}>
-                              <Edit className='h-4 w-4' />
-                            </Button>
-                            <Button variant='ghost' size='icon' className='h-8 w-8 text-destructive' title='Delete' onClick={() => product.id && handleDelete(product.id)}>
-                              <Trash2 className='h-4 w-4' />
-                            </Button>
-                          </>
-                        )}
+                        <Button variant='ghost' size='icon' className='h-8 w-8' title='Edit' onClick={() => handleEdit(product)}>
+                          <Edit className='h-4 w-4' />
+                        </Button>
+                        <Button variant='ghost' size='icon' className='h-8 w-8 text-destructive' title='Delete' onClick={() => product.id && handleDelete(product.id)}>
+                          <Trash2 className='h-4 w-4' />
+                        </Button>
                       </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant={(product.quantity ?? 0) > 5 ? 'secondary' : 'destructive'}>{product.quantity}</Badge>  
                     </TableCell>
-                    {role === 'Admin' && <TableCell>₹{product.purchase_price}</TableCell>}
+                    <TableCell>₹{product.purchase_price}</TableCell>
                     <TableCell>₹{product.selling_price}</TableCell>
                   </TableRow>
                 ))}
@@ -505,9 +497,7 @@ export default function InventoryPage() {
                 <p className='text-sm text-muted-foreground'>{viewingProduct.brand}</p>
               </div>
               <div className='grid grid-cols-2 gap-4 text-sm'>
-                {role === 'Admin' && (
-                  <div><p className='text-muted-foreground'>Buy Price</p><p className='font-semibold'>₹{viewingProduct.purchase_price}</p></div>
-                )}
+                <div><p className='text-muted-foreground'>Buy Price</p><p className='font-semibold'>₹{viewingProduct.purchase_price}</p></div>
                 <div><p className='text-muted-foreground'>Sell Price</p><p className='font-semibold'>₹{viewingProduct.selling_price}</p></div>
                 <div><p className='text-muted-foreground'>Stock</p><p className='font-semibold'>{viewingProduct.quantity} units</p></div>
                 <div><p className='text-muted-foreground'>Location</p><p className='font-semibold'>{viewingProduct.location || 'N/A'}</p></div>
