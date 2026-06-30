@@ -99,5 +99,70 @@ export const saleService = {
       console.error("Error recording sale:", error);
       throw error;
     }
+  },
+
+  async updateSale(saleId: string, updates: Partial<Sale>) {
+    try {
+      const { data, error } = await supabase
+        .from('sales')
+        .update(updates)
+        .eq('id', saleId)
+        .select();
+
+      if (error) throw error;
+      return data[0];
+    } catch (error) {
+      console.error("Error updating sale:", error);
+      throw error;
+    }
+  },
+
+  async deleteSale(saleId: string) {
+    try {
+      // 1. Fetch sale items to restock the products
+      const { data: saleItems, error: fetchError } = await supabase
+        .from('sale_items')
+        .select('*')
+        .eq('sale_id', saleId);
+
+      if (fetchError) throw fetchError;
+
+      // 2. Restock the products
+      if (saleItems && saleItems.length > 0) {
+        for (const item of saleItems) {
+          const { data: product } = await supabase
+            .from('products')
+            .select('quantity')
+            .eq('id', item.product_id)
+            .single();
+
+          if (product) {
+            const newQuantity = product.quantity + item.quantity;
+            await supabase
+              .from('products')
+              .update({ quantity: newQuantity })
+              .eq('id', item.product_id);
+          }
+        }
+      }
+
+      // 3. Delete sale items first
+      await supabase
+        .from('sale_items')
+        .delete()
+        .eq('sale_id', saleId);
+
+      // 4. Delete the sale record itself
+      const { error: deleteError } = await supabase
+        .from('sales')
+        .delete()
+        .eq('id', saleId);
+
+      if (deleteError) throw deleteError;
+      return true;
+    } catch (error) {
+      console.error("Error deleting sale:", error);
+      throw error;
+    }
   }
 };

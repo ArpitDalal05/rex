@@ -3,9 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, Printer, Eye } from 'lucide-react';
+import { Loader2, Printer, Eye, Edit, Trash2 } from 'lucide-react';
 import { saleService } from '@/services/saleService';
+import { customerService, Customer } from '@/services/customerService';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -17,12 +20,22 @@ import { printElement } from '@/lib/utils';
 
 export default function SalesPage() {
   const [sales, setSales] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSale, setSelectedSale] = useState<any>(null);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
+  // Edit State
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editSaleId, setEditSaleId] = useState<string>('');
+  const [editCustomerId, setEditCustomerId] = useState<string>('walk-in');
+  const [editPaymentMethod, setEditPaymentMethod] = useState<string>('UPI');
+  const [editTotalAmount, setEditTotalAmount] = useState<number>(0);
+  const [saving, setSaving] = useState(false);
+
   useEffect(() => {
     fetchSales();
+    fetchCustomers();
   }, []);
 
   const fetchSales = async () => {
@@ -34,6 +47,15 @@ export default function SalesPage() {
       console.error('Error fetching sales:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const data = await customerService.getAllCustomers();
+      setCustomers(data || []);
+    } catch (error) {
+      console.error('Error fetching customers:', error);
     }
   };
 
@@ -55,6 +77,45 @@ export default function SalesPage() {
       items: sale.sale_items || []
     });
     setIsReceiptOpen(true);
+  };
+
+  const handleOpenEdit = (sale: any) => {
+    setEditSaleId(sale.id);
+    setEditCustomerId(sale.customer_id || 'walk-in');
+    setEditPaymentMethod(sale.payment_method);
+    setEditTotalAmount(sale.total_amount);
+    setIsEditOpen(true);
+  };
+
+  const handleUpdateSale = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setSaving(true);
+      await saleService.updateSale(editSaleId, {
+        customer_id: editCustomerId === 'walk-in' ? null : editCustomerId,
+        payment_method: editPaymentMethod,
+        total_amount: Number(editTotalAmount)
+      });
+      setIsEditOpen(false);
+      fetchSales();
+    } catch (error) {
+      console.error('Error updating sale:', error);
+      alert('Failed to update sale.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteSale = async (saleId: string) => {
+    if (window.confirm("Are you sure you want to delete this sale? This will restore the product stock quantities in inventory.")) {
+      try {
+        await saleService.deleteSale(saleId);
+        fetchSales();
+      } catch (error) {
+        console.error("Error deleting sale:", error);
+        alert("Failed to delete sale.");
+      }
+    }
   };
 
   const handlePrint = () => {
@@ -108,17 +169,29 @@ export default function SalesPage() {
                           {new Date(sale.created_at).toLocaleDateString()}
                         </TableCell>
                         <TableCell className='text-right'>
-                          <Button variant='ghost' size='sm' className='gap-2' onClick={() => handleOpenReceipt(sale, receiptNum)}>
-                            <Printer className='w-4 h-4' />
-                            Receipt
-                          </Button>
+                          <div className="flex justify-end items-center gap-1">
+                            <Button variant='ghost' size='sm' className='gap-1 h-8 text-xs' onClick={() => handleOpenReceipt(sale, receiptNum)}>
+                              <Printer className='w-3.5 h-3.5' />
+                              <span className="hidden md:inline">Receipt</span>
+                            </Button>
+                            
+                            <Button variant='ghost' size='sm' className='gap-1 h-8 text-xs text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20' onClick={() => handleOpenEdit(sale)}>
+                              <Edit className='w-3.5 h-3.5' />
+                              <span className="hidden md:inline">Edit</span>
+                            </Button>
+                            
+                            <Button variant='ghost' size='sm' className='gap-1 h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20' onClick={() => handleDeleteSale(sale.id)}>
+                              <Trash2 className='w-3.5 h-3.5' />
+                              <span className="hidden md:inline">Delete</span>
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
                   })}
                   {sales.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} className='text-center py-8 text-muted-foreground'>
+                      <TableCell colSpan={7} className='text-center py-8 text-muted-foreground'>
                         No sales found.
                       </TableCell>
                     </TableRow>
@@ -130,6 +203,71 @@ export default function SalesPage() {
         </CardContent>
       </Card>
 
+      {/* Edit Sale Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Sale Record</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdateSale} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Customer Profile</label>
+              <Select value={editCustomerId} onValueChange={(val) => setEditCustomerId(val || 'walk-in')}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Customer" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="walk-in">Walk-in Customer</SelectItem>
+                  {customers.map((c) => (
+                    <SelectItem key={c.id} value={c.id || ''}>
+                      {c.name} {c.phone_number ? `(${c.phone_number})` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Payment Method</label>
+              <Select value={editPaymentMethod} onValueChange={(val) => setEditPaymentMethod(val || 'UPI')}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Payment Method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Cash">Cash</SelectItem>
+                  <SelectItem value="Card">Card</SelectItem>
+                  <SelectItem value="UPI">UPI</SelectItem>
+                  <SelectItem value="WhatsApp Pay">WhatsApp Pay</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Total Amount (₹)</label>
+              <Input
+                type="number"
+                required
+                value={editTotalAmount}
+                onChange={(e) => setEditTotalAmount(Number(e.target.value))}
+                placeholder="Enter Total Amount"
+                className="w-full"
+              />
+            </div>
+
+            <DialogFooter className="pt-4 flex gap-2">
+              <Button type="button" variant="outline" className="flex-1" onClick={() => setIsEditOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" className="flex-1" disabled={saving}>
+                {saving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Sale Receipt Dialog */}
       <Dialog open={isReceiptOpen} onOpenChange={setIsReceiptOpen}>
         <DialogContent className='sm:max-w-[400px]'>
           <DialogHeader className='no-print'>
