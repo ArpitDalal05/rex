@@ -662,10 +662,10 @@ export default function InventoryPage() {
                   <p className='font-semibold uppercase tracking-wider text-muted-foreground mb-1'>Customer Details</p>
                   <div className='flex justify-between'><span>Name:</span><span>{lastSale.customerName}</span></div>
                   {lastSale.customerPhone && <div className='flex justify-between'><span>Mobile No:</span><span>{lastSale.customerPhone}</span></div>}
-                  {lastSale.customerWhatsapp && <div className='flex justify-between'><span>Whatsapp No:</span><span>{lastSale.customerWhatsapp}</span></div>}
-                  {lastSale.customerModel && <div className='flex justify-between'><span>Mobile Model:</span><span>{lastSale.customerModel}</span></div>}
+                  {lastSale.customerWhatsapp && <div className='flex justify-between no-print'><span>Whatsapp No:</span><span>{lastSale.customerWhatsapp}</span></div>}
+                  {lastSale.customerModel && <div className='flex justify-between no-print'><span>Mobile Model:</span><span>{lastSale.customerModel}</span></div>}
                   {lastSale.customerAddress && <div className='flex justify-between'><span>Address/Area:</span><span>{lastSale.customerAddress}</span></div>}
-                  {lastSale.customerCategory && <div className='flex justify-between'><span>Category:</span><span>{lastSale.customerCategory}</span></div>}
+                  {lastSale.customerCategory && <div className='flex justify-between no-print'><span>Category:</span><span>{lastSale.customerCategory}</span></div>}
                 </div>
 
                 <Table>
@@ -685,9 +685,10 @@ export default function InventoryPage() {
                   <span>Grand Total</span>
                   <span>₹{lastSale.total}</span>
                 </div>
-                <div className='mt-4 text-center text-xs italic border-t pt-4'>
-                  <p>Thank you for your business!</p>
-                  <p>Goods once sold are not returnable.</p>
+                <div className='mt-4 text-center text-xs font-semibold border-t pt-4 space-y-1'>
+                  <p>Please Check Before Purchase</p>
+                  <p>No Guarantee - No Warranty</p>
+                  <p>No Return - No Exchange</p>
                 </div>
               </div>
             </div>

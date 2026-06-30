@@ -154,10 +154,10 @@ export default function SalesPage() {
                   <p className='font-semibold uppercase tracking-wider text-muted-foreground mb-1'>Customer Details</p>
                   <div className='flex justify-between'><span>Name:</span><span>{selectedSale.customerName}</span></div>
                   {selectedSale.customerPhone && <div className='flex justify-between'><span>Mobile No:</span><span>{selectedSale.customerPhone}</span></div>}
-                  {selectedSale.customerWhatsapp && <div className='flex justify-between'><span>Whatsapp No:</span><span>{selectedSale.customerWhatsapp}</span></div>}
-                  {selectedSale.customerModel && <div className='flex justify-between'><span>Mobile Model:</span><span>{selectedSale.customerModel}</span></div>}
+                  {selectedSale.customerWhatsapp && <div className='flex justify-between no-print'><span>Whatsapp No:</span><span>{selectedSale.customerWhatsapp}</span></div>}
+                  {selectedSale.customerModel && <div className='flex justify-between no-print'><span>Mobile Model:</span><span>{selectedSale.customerModel}</span></div>}
                   {selectedSale.customerAddress && <div className='flex justify-between'><span>Address/Area:</span><span>{selectedSale.customerAddress}</span></div>}
-                  {selectedSale.customerCategory && <div className='flex justify-between'><span>Category:</span><span>{selectedSale.customerCategory}</span></div>}
+                  {selectedSale.customerCategory && <div className='flex justify-between no-print'><span>Category:</span><span>{selectedSale.customerCategory}</span></div>}
                 </div>
 
                 <Table>
@@ -191,9 +191,10 @@ export default function SalesPage() {
                   <span>Grand Total</span>
                   <span>₹{selectedSale.total}</span>
                 </div>
-                <div className='mt-8 text-center text-xs italic border-t pt-4'>
-                  <p>Thank you for your business!</p>
-                  <p>Visit again!</p>
+                <div className='mt-8 text-center text-xs font-semibold border-t pt-4 space-y-1'>
+                  <p>Please Check Before Purchase</p>
+                  <p>No Guarantee - No Warranty</p>
+                  <p>No Return - No Exchange</p>
                 </div>
               </div>
             </div>
