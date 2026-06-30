@@ -22,6 +22,8 @@ import {
   Info
 } from "lucide-react";
 import { permissionService, PermissionsMap } from '@/services/permissionService';
+import { useAuth } from '@/components/layout/AuthContext';
+import AccessDenied from '@/components/layout/AccessDenied';
 
 interface PermissionOption {
   key: string;
@@ -38,6 +40,12 @@ interface Section {
 }
 
 export default function UserAccessPage() {
+  const { role: currentUserRole } = useAuth();
+
+  if (currentUserRole !== 'Admin') {
+    return <AccessDenied />;
+  }
+
   const [role, setRole] = useState<'Employee' | 'Admin'>('Employee');
   const [permissions, setPermissions] = useState<PermissionsMap>({});
   const [loading, setLoading] = useState(true);

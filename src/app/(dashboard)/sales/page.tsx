@@ -17,8 +17,27 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { printElement } from '@/lib/utils';
+import { useAuth } from '@/components/layout/AuthContext';
+import { Badge } from '@/components/ui/badge';
+
+const getPaymentBadge = (method: string) => {
+  switch (method) {
+    case 'Cash':
+      return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-50 hover:text-emerald-700 shadow-none px-2 py-0.5 rounded text-xs font-semibold">Cash</Badge>;
+    case 'UPI':
+      return <Badge className="bg-sky-50 text-sky-700 border-sky-100 hover:bg-sky-50 hover:text-sky-700 shadow-none px-2 py-0.5 rounded text-xs font-semibold">UPI</Badge>;
+    case 'Card':
+      return <Badge className="bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-50 hover:text-indigo-700 shadow-none px-2 py-0.5 rounded text-xs font-semibold">Card</Badge>;
+    case 'WhatsApp Pay':
+    case 'WhatsApp':
+      return <Badge className="bg-green-50 text-green-700 border-green-100 hover:bg-green-50 hover:text-green-700 shadow-none px-2 py-0.5 rounded text-xs font-semibold">WhatsApp</Badge>;
+    default:
+      return <Badge className="bg-slate-50 text-slate-700 border-slate-100 hover:bg-slate-50 hover:text-slate-700 shadow-none px-2 py-0.5 rounded text-xs font-semibold">{method}</Badge>;
+  }
+};
 
 export default function SalesPage() {
+  const { role } = useAuth();
   const [sales, setSales] = useState<any[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -164,7 +183,7 @@ export default function SalesPage() {
                         <TableCell>{sale.customers?.name || 'Walk-in'}</TableCell>
                         <TableCell className="max-w-[200px] truncate" title={productList}>{productList}</TableCell>
                         <TableCell className='font-medium'>₹{sale.total_amount}</TableCell>
-                        <TableCell>{sale.payment_method}</TableCell>
+                        <TableCell>{getPaymentBadge(sale.payment_method)}</TableCell>
                         <TableCell className='hidden sm:table-cell text-muted-foreground text-sm'>
                           {new Date(sale.created_at).toLocaleDateString()}
                         </TableCell>
@@ -180,10 +199,12 @@ export default function SalesPage() {
                               <span className="hidden md:inline">Edit</span>
                             </Button>
                             
-                            <Button variant='ghost' size='sm' className='gap-1 h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20' onClick={() => handleDeleteSale(sale.id)}>
-                              <Trash2 className='w-3.5 h-3.5' />
-                              <span className="hidden md:inline">Delete</span>
-                            </Button>
+                            {role === 'Admin' && (
+                              <Button variant='ghost' size='sm' className='gap-1 h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20' onClick={() => handleDeleteSale(sale.id)}>
+                                <Trash2 className='w-3.5 h-3.5' />
+                                <span className="hidden md:inline">Delete</span>
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
