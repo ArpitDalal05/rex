@@ -67,13 +67,36 @@ export default function CustomersPage() {
     setSameAsMobile(false);
   };
 
+  const getWhatsappUrl = (whatsappNum?: string | null, phoneNum?: string | null) => {
+    const target = (whatsappNum || phoneNum)?.trim();
+    if (!target) return null;
+    let cleaned = target.replace(/[^0-9]/g, '');
+    if (!cleaned) return null;
+    cleaned = cleaned.replace(/^0+/, '');
+    if (cleaned.length === 10) {
+      cleaned = '91' + cleaned;
+    }
+    return `https://wa.me/${cleaned}`;
+  };
+
   const onSubmit = async (data: Customer) => {
     try {
       setIsSubmitting(true);
+      const payload: Customer = {
+        ...data,
+        name: data.name?.trim() || '',
+        phone_number: data.phone_number?.trim() || null,
+        whatsapp_number: data.whatsapp_number?.trim() || data.phone_number?.trim() || null,
+        current_mobile_model: data.current_mobile_model?.trim() || null,
+        address: data.address?.trim() || null,
+        email: data.email?.trim() || null,
+        category: data.category || 'Retailer'
+      };
+
       if (editingId) {
-        await customerService.updateCustomer(editingId, data);
+        await customerService.updateCustomer(editingId, payload);
       } else {
-        await customerService.addCustomer(data);
+        await customerService.addCustomer(payload);
       }
       setIsDialogOpen(false);
       resetForm();
@@ -314,21 +337,25 @@ export default function CustomersPage() {
                           </span>
                         )}
                         
-                        {customer.whatsapp_number ? (
-                          <a 
-                            href={`https://wa.me/${customer.whatsapp_number.replace(/[^0-9]/g, '')}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1 rounded text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
-                            title={`WhatsApp: ${customer.whatsapp_number}`}
-                          >
-                            <MessageSquare className="w-4 h-4" />
-                          </a>
-                        ) : (
-                          <span className="p-1 text-slate-300 dark:text-slate-700 cursor-not-allowed" title="No Whatsapp Number">
-                            <MessageSquare className="w-4 h-4" />
-                          </span>
-                        )}
+                        {(() => {
+                          const waUrl = getWhatsappUrl(customer.whatsapp_number, customer.phone_number);
+                          const waNumDisplay = customer.whatsapp_number || customer.phone_number || '';
+                          return waUrl ? (
+                            <a 
+                              href={waUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1 rounded text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-colors"
+                              title={`WhatsApp: ${waNumDisplay}`}
+                            >
+                              <MessageSquare className="w-4 h-4" />
+                            </a>
+                          ) : (
+                            <span className="p-1 text-slate-300 dark:text-slate-700 cursor-not-allowed" title="No Whatsapp Number">
+                              <MessageSquare className="w-4 h-4" />
+                            </span>
+                          );
+                        })()}
 
                         {customer.email ? (
                           <a 
