@@ -8,20 +8,16 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { 
   Barcode, 
-  Lock, 
   Printer, 
   Download, 
   Camera, 
   History, 
-  Settings, 
   Sparkles, 
   Search, 
   Trash2, 
   Check, 
   RefreshCw, 
   ShieldCheck,
-  Eye,
-  EyeOff,
   Upload
 } from 'lucide-react';
 import { 
@@ -44,8 +40,7 @@ export default function BarcodeSecretPage() {
   const [activeTab, setActiveTab] = useState('generator');
 
   // Encryption Key State
-  const [encryptionKey, setEncryptionKey] = useState<string>('REX_SECRET_KEY_2026');
-  const [showKey, setShowKey] = useState(false);
+  const [encryptionKey] = useState<string>('REX_SECRET_KEY_2026');
 
   // Generator State
   const [priceInput, setPriceInput] = useState<string>('250');
@@ -71,12 +66,9 @@ export default function BarcodeSecretPage() {
   const isScanningRef = useRef<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load Settings & History from LocalStorage
+  // Load History from LocalStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const savedKey = localStorage.getItem('rex_encryption_key');
-      if (savedKey) setEncryptionKey(savedKey);
-
       const savedHistory = localStorage.getItem('rex_barcode_history');
       if (savedHistory) {
         try {
@@ -122,14 +114,6 @@ export default function BarcodeSecretPage() {
       });
     }
   }, [encryptedData, secretCode]);
-
-  // Save Key to LocalStorage
-  const handleSaveKey = (newKey: string) => {
-    setEncryptionKey(newKey);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('rex_encryption_key', newKey);
-    }
-  };
 
   // Save Sticker to History
   const handleSaveToHistory = () => {
@@ -358,12 +342,12 @@ export default function BarcodeSecretPage() {
         </Badge>
       </div>
 
-      {/* Main Tabs Navigation - Optimized for Mobile Chrome & Desktop */}
+      {/* Main Tabs Navigation */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="flex items-center justify-between w-full h-auto p-1.5 bg-muted/80 rounded-xl overflow-x-auto gap-1.5 border">
+        <TabsList className="grid grid-cols-3 w-full h-auto p-1.5 bg-muted/80 rounded-xl gap-1.5 border">
           <TabsTrigger 
             value="generator" 
-            className="flex-1 min-w-[100px] sm:min-w-0 flex items-center justify-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm font-bold rounded-lg transition-all"
+            className="flex items-center justify-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm font-bold rounded-lg transition-all"
           >
             <Barcode className="w-4 h-4 shrink-0" />
             <span className="truncate">Generator</span>
@@ -371,7 +355,7 @@ export default function BarcodeSecretPage() {
 
           <TabsTrigger 
             value="scanner" 
-            className="flex-1 min-w-[100px] sm:min-w-0 flex items-center justify-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm font-bold rounded-lg transition-all"
+            className="flex items-center justify-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm font-bold rounded-lg transition-all"
           >
             <Camera className="w-4 h-4 shrink-0" />
             <span className="truncate">Scanner</span>
@@ -379,18 +363,10 @@ export default function BarcodeSecretPage() {
 
           <TabsTrigger 
             value="history" 
-            className="flex-1 min-w-[100px] sm:min-w-0 flex items-center justify-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm font-bold rounded-lg transition-all"
+            className="flex items-center justify-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm font-bold rounded-lg transition-all"
           >
             <History className="w-4 h-4 shrink-0" />
             <span className="truncate">History</span>
-          </TabsTrigger>
-
-          <TabsTrigger 
-            value="settings" 
-            className="flex-1 min-w-[100px] sm:min-w-0 flex items-center justify-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm font-bold rounded-lg transition-all"
-          >
-            <Settings className="w-4 h-4 shrink-0" />
-            <span className="truncate">Settings</span>
           </TabsTrigger>
         </TabsList>
 
@@ -418,7 +394,7 @@ export default function BarcodeSecretPage() {
                       value={priceInput}
                       onChange={(e) => setPriceInput(e.target.value)}
                       placeholder="e.g. 250"
-                      className="text-lg font-bold font-mono tracking-wide"
+                      className="text-lg font-bold font-mono tracking-wide [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     <p className="text-[11px] sm:text-xs text-muted-foreground">
                       Mapping: 1=L, 2=O, 3=R, 4=D, 5=G, 6=A, 7=N, 8=E, 9=S, 0=H
@@ -682,50 +658,6 @@ export default function BarcodeSecretPage() {
                   <p className="text-sm">No saved sticker history found.</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* TAB 4: SETTINGS */}
-        <TabsContent value="settings" className="mt-6 space-y-6">
-          <Card className="border-none shadow-sm max-w-2xl mx-auto">
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-                <Settings className="w-5 h-5 text-primary" />
-                <span>Barcode & Encryption Settings</span>
-              </CardTitle>
-              <CardDescription className="text-xs sm:text-sm">
-                Customize your secret encryption key passphrase.
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent className="p-4 sm:p-6 pt-0 space-y-6">
-              {/* Secret Key Input */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center justify-between">
-                  <span>Secret AES Encryption Key</span>
-                  <span className="text-xs text-muted-foreground">Stored securely in browser storage</span>
-                </label>
-                <div className="relative">
-                  <Input 
-                    type={showKey ? 'text' : 'password'}
-                    value={encryptionKey}
-                    onChange={(e) => handleSaveKey(e.target.value)}
-                    placeholder="Enter secret passphrase..."
-                    className="pr-10 font-mono text-sm"
-                  />
-                  <button 
-                    type="button"
-                    onClick={() => setShowKey(!showKey)}
-                    className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground"
-                  >
-                    {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Only scanners configured with this exact key can decrypt barcodes generated by your app.
-                </p>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
