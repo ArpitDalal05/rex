@@ -1,4 +1,4 @@
-'use client';
+  'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import {
@@ -477,7 +477,7 @@ export default function InventoryPage() {
       </Card>
 
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-        <DialogContent className='sm:max-w-[450px] max-h-[90vh] overflow-y-auto'>
+        <DialogContent className='sm:max-w-[450px]'>
           <DialogHeader>
             <DialogTitle>Product Details</DialogTitle>
           </DialogHeader>
@@ -644,52 +644,49 @@ export default function InventoryPage() {
             <DialogTitle>Sale Successful</DialogTitle>
           </DialogHeader>
           {lastSale && (
-            <div className="max-h-[50vh] sm:max-h-[60vh] overflow-y-auto pr-1">
-              <div className='p-6 border rounded-lg bg-white text-black font-sans' id='receipt-content'>
-                <div className='text-center border-b pb-4 mb-4'>
-                  <h2 className='text-xl font-bold uppercase'>Rex Mobile & Computers</h2>
-                  <p className='text-xs'>Gujrati Market, Burhanpur</p>
-                  <p className='text-xs'>Ph.No.: 9977800726</p>
-                </div>
-                <div className='space-y-2 text-sm mb-4'>
-                  <div className='flex justify-between'><span>Receipt No:</span><span className='font-mono uppercase'>{lastSale.invoice_number || lastSale.id.split('-')[0]}</span></div>
-                  <div className='flex justify-between'><span>Date:</span><span>{lastSale.date}</span></div>
-                  <div className='flex justify-between'><span>Time:</span><span>{lastSale.time}</span></div>
-                  {lastSale.imei && <div className='flex justify-between font-mono text-xs'><span>Serial No.:</span><span>{lastSale.imei}</span></div>}
-                </div>
-                
-                <div className='border-t pt-2 mb-4 text-xs space-y-1'>
-                  <p className='font-semibold uppercase tracking-wider text-muted-foreground mb-1'>Customer Details</p>
-                  <div className='flex justify-between'><span>Name:</span><span>{lastSale.customerName}</span></div>
-                  {lastSale.customerPhone && <div className='flex justify-between'><span>Mobile No:</span><span>{lastSale.customerPhone}</span></div>}
-                  {lastSale.customerWhatsapp && <div className='flex justify-between no-print'><span>Whatsapp No:</span><span>{lastSale.customerWhatsapp}</span></div>}
-                  {lastSale.customerModel && <div className='flex justify-between no-print'><span>Mobile Model:</span><span>{lastSale.customerModel}</span></div>}
-                  {lastSale.customerAddress && <div className='flex justify-between'><span>Address/Area:</span><span>{lastSale.customerAddress}</span></div>}
-                  {lastSale.customerCategory && <div className='flex justify-between no-print'><span>Category:</span><span>{lastSale.customerCategory}</span></div>}
-                </div>
+            <div className='p-6 border rounded-lg bg-white text-black font-sans' id='receipt-content'>
+              <div className='text-center border-b pb-4 mb-4'>
+                <h2 className='text-xl font-bold uppercase'>Rex Mobile & Computers</h2>
+                <p className='text-xs'>Gujrati Market, Burhanpur</p>
+                <p className='text-xs'>Ph.No.: 9977800726</p>
+              </div>
+              <div className='space-y-2 text-sm mb-4'>
+                <div className='flex justify-between'><span>Receipt No:</span><span className='font-mono uppercase'>{lastSale.invoice_number || lastSale.id.split('-')[0]}</span></div>
+                <div className='flex justify-between'><span>Date:</span><span>{lastSale.date}</span></div>
+                <div className='flex justify-between'><span>Time:</span><span>{lastSale.time}</span></div>
+                {lastSale.imei && <div className='flex justify-between font-mono text-xs'><span>Serial No.:</span><span>{lastSale.imei}</span></div>}
+              </div>
+              
+              <div className='border-t pt-2 mb-4 text-xs space-y-1'>
+                <p className='font-semibold uppercase tracking-wider text-muted-foreground mb-1'>Customer Details</p>
+                <div className='flex justify-between'><span>Name:</span><span>{lastSale.customerName}</span></div>
+                {lastSale.customerPhone && <div className='flex justify-between'><span>Mobile No:</span><span>{lastSale.customerPhone}</span></div>}
+                {lastSale.customerWhatsapp && <div className='flex justify-between'><span>Whatsapp No:</span><span>{lastSale.customerWhatsapp}</span></div>}
+                {lastSale.customerModel && <div className='flex justify-between'><span>Mobile Model:</span><span>{lastSale.customerModel}</span></div>}
+                {lastSale.customerAddress && <div className='flex justify-between'><span>Address/Area:</span><span>{lastSale.customerAddress}</span></div>}
+                {lastSale.customerCategory && <div className='flex justify-between'><span>Category:</span><span>{lastSale.customerCategory}</span></div>}
+              </div>
 
-                <Table>
-                  <TableHeader><TableRow className='hover:bg-transparent border-b-2'><TableHead className='px-0 text-black h-8'>Item</TableHead><TableHead className='text-center text-black h-8'>Qty</TableHead><TableHead className='text-right px-0 text-black h-8'>Price</TableHead></TableRow></TableHeader>
-                  <TableBody>
-                    <TableRow className='hover:bg-transparent border-none'>
-                      <TableCell className='px-0 py-2'>
-                        <div>{lastSale.productName}</div>
-                        {lastSale.imei && <div className='text-[10px] font-mono text-slate-500'>Serial No.: {lastSale.imei}</div>}
-                      </TableCell>
-                      <TableCell className='text-center'>{lastSale.quantity}</TableCell>
-                      <TableCell className='text-right px-0'>₹{lastSale.price}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-                <div className='border-t-2 mt-4 pt-2 text-lg font-bold flex justify-between'>
-                  <span>Grand Total</span>
-                  <span>₹{lastSale.total}</span>
-                </div>
-                <div className='mt-4 text-center text-xs font-semibold border-t pt-4 space-y-1'>
-                  <p>Please Check Before Purchase</p>
-                  <p>No Guarantee - No Warranty</p>
-                  <p>No Return - No Exchange</p>
-                </div>
+              <Table>
+                <TableHeader><TableRow className='hover:bg-transparent border-b-2'><TableHead className='px-0 text-black h-8'>Item</TableHead><TableHead className='text-center text-black h-8'>Qty</TableHead><TableHead className='text-right px-0 text-black h-8'>Price</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  <TableRow className='hover:bg-transparent border-none'>
+                    <TableCell className='px-0 py-2'>
+                      <div>{lastSale.productName}</div>
+                      {lastSale.imei && <div className='text-[10px] font-mono text-slate-500'>Serial No.: {lastSale.imei}</div>}
+                    </TableCell>
+                    <TableCell className='text-center'>{lastSale.quantity}</TableCell>
+                    <TableCell className='text-right px-0'>₹{lastSale.price}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <div className='border-t-2 mt-4 pt-2 text-lg font-bold flex justify-between'>
+                <span>Grand Total</span>
+                <span>₹{lastSale.total}</span>
+              </div>
+              <div className='mt-4 text-center text-xs italic border-t pt-4'>
+                <p>Thank you for your business!</p>
+                <p>Goods once sold are not returnable.</p>
               </div>
             </div>
           )}

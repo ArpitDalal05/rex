@@ -214,9 +214,9 @@ export default function RootPage() {
 
           {/* Center Links (Store Navigation - Desktop) */}
           <div className="hidden md:flex items-center gap-8 text-xs font-medium text-white/60 tracking-wider uppercase">
-            <Link href="/dashboard-stats" className="hover:text-white transition-colors">Dashboard</Link>
+            <Link href="/reports" className="hover:text-white transition-colors">Reports</Link>
             <Link href="/inventory" className="hover:text-white transition-colors">Inventory</Link>
-            <Link href="/products" className="hover:text-white transition-colors">Products</Link>
+            <Link href="/barcode-secret" className="hover:text-white transition-colors">Secret Barcode</Link>
             <Link href="/sales" className="hover:text-white transition-colors">Sales</Link>
             <Link href="/billing" className="hover:text-[#00D6FF] transition-colors text-[#00D6FF]/90 font-bold">POS Billing</Link>
           </div>
@@ -224,7 +224,7 @@ export default function RootPage() {
           {/* Right CTA */}
           <div className="flex items-center gap-2 md:gap-4">
             <Link 
-              href="/dashboard-stats"
+              href="/inventory"
               className="hidden sm:flex text-xs font-bold bg-gradient-to-r from-[#0050FF] to-[#00D6FF] hover:opacity-90 text-white px-4 py-2 rounded-full transition-all shadow-[0_0_15px_rgba(0,80,255,0.4)] items-center gap-1.5"
             >
               <span>Manage Store</span>
@@ -254,9 +254,9 @@ export default function RootPage() {
         <div className={`fixed inset-0 bg-[#050505]/95 backdrop-blur-xl z-40 flex flex-col items-center justify-center gap-8 transition-all duration-500 md:hidden pointer-events-auto ${
           mobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'
         }`}>
-          <Link href="/dashboard-stats" className="text-xl font-medium hover:text-[#00D6FF] transition-colors" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
+          <Link href="/reports" className="text-xl font-medium hover:text-[#00D6FF] transition-colors" onClick={() => setMobileMenuOpen(false)}>Reports</Link>
           <Link href="/inventory" className="text-xl font-medium hover:text-[#00D6FF] transition-colors" onClick={() => setMobileMenuOpen(false)}>Inventory</Link>
-          <Link href="/products" className="text-xl font-medium hover:text-[#00D6FF] transition-colors" onClick={() => setMobileMenuOpen(false)}>Products</Link>
+          <Link href="/barcode-secret" className="text-xl font-medium hover:text-[#00D6FF] transition-colors" onClick={() => setMobileMenuOpen(false)}>Secret Barcode</Link>
           <Link href="/sales" className="text-xl font-medium hover:text-[#00D6FF] transition-colors" onClick={() => setMobileMenuOpen(false)}>Sales</Link>
           <Link href="/billing" className="text-xl font-bold text-[#00D6FF] hover:opacity-90 transition-colors" onClick={() => setMobileMenuOpen(false)}>POS Billing</Link>
           <button 

@@ -16,17 +16,17 @@ import {
   X,
   Lock,
   Receipt,
-  Sparkles
+  Sparkles,
+  Barcode
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
   { label: 'Dashboard', icon: Sparkles, href: '/' },
-  { label: 'Business Stats', icon: LayoutDashboard, href: '/dashboard-stats' },
+  { label: 'Secret Barcode', icon: Barcode, href: '/barcode-secret' },
   { label: 'Billing', icon: Receipt, href: '/billing' },
   { label: 'Inventory', icon: Package, href: '/inventory' },
-  { label: 'Products (Cards)', icon: Smartphone, href: '/products' },
   { label: 'Sales', icon: ShoppingCart, href: '/sales' },
   { label: 'Customers', icon: Users, href: '/customers' },
   { label: 'Staff Directory', icon: Users, href: '/users' },
