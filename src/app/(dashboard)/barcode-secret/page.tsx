@@ -9,7 +9,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { 
   Barcode, 
   Lock, 
-  Key, 
   Printer, 
   Download, 
   Camera, 
@@ -20,10 +19,10 @@ import {
   Trash2, 
   Check, 
   RefreshCw, 
-  ArrowRight,
   ShieldCheck,
   Eye,
-  EyeOff
+  EyeOff,
+  Upload
 } from 'lucide-react';
 import { 
   encodePriceToSecretCode, 
@@ -55,10 +54,6 @@ export default function BarcodeSecretPage() {
   const [isEncrypting, setIsEncrypting] = useState<boolean>(false);
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
 
-  // Decoder State
-  const [manualCode, setManualCode] = useState<string>('OGH');
-  const [manualPriceResult, setManualPriceResult] = useState<string>('250');
-
   // Scanner State
   const [scannedEncryptedText, setScannedEncryptedText] = useState<string>('');
   const [scanResultCode, setScanResultCode] = useState<string | null>(null);
@@ -74,6 +69,7 @@ export default function BarcodeSecretPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const isScanningRef = useRef<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load Settings & History from LocalStorage
   useEffect(() => {
@@ -127,15 +123,6 @@ export default function BarcodeSecretPage() {
     }
   }, [encryptedData, secretCode]);
 
-  // Manual Secret Code Decoder
-  useEffect(() => {
-    if (manualCode) {
-      setManualPriceResult(decodeSecretCodeToPrice(manualCode));
-    } else {
-      setManualPriceResult('');
-    }
-  }, [manualCode]);
-
   // Save Key to LocalStorage
   const handleSaveKey = (newKey: string) => {
     setEncryptionKey(newKey);
@@ -174,7 +161,7 @@ export default function BarcodeSecretPage() {
     }
   };
 
-  // Export PNG / JPG (Contains ONLY the barcode and secret code text, no shop title)
+  // Export PNG / JPG
   const handleExportImage = (format: 'png' | 'jpg') => {
     if (!encryptedData || !secretCode) return;
 
@@ -191,7 +178,7 @@ export default function BarcodeSecretPage() {
     link.click();
   };
 
-  // Direct Barcode Print (No header text)
+  // Direct Barcode Print
   const handlePrintSticker = () => {
     if (!canvasRef.current) return;
 
@@ -259,13 +246,15 @@ export default function BarcodeSecretPage() {
     }
   };
 
-  // Camera Scanner Handler with Detection Loop
+  // Camera Scanner Handler with HD Constraints & Frame Loop
   const startCameraScanner = async () => {
     setIsScanningCamera(true);
     isScanningRef.current = true;
     setScanError(null);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } 
+      });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
@@ -285,7 +274,7 @@ export default function BarcodeSecretPage() {
     if ('BarcodeDetector' in window) {
       try {
         // @ts-ignore
-        const detector = new window.BarcodeDetector({ formats: ['code_128', 'qr_code', 'ean_13'] });
+        const detector = new window.BarcodeDetector({ formats: ['code_128', 'code_39', 'qr_code', 'ean_13'] });
         const barcodes = await detector.detect(videoRef.current);
         if (barcodes && barcodes.length > 0) {
           const rawValue = barcodes[0].rawValue;
@@ -297,7 +286,7 @@ export default function BarcodeSecretPage() {
           }
         }
       } catch (e) {
-        // continue loop
+        // Continue detection frame loop
       }
     }
 
@@ -314,6 +303,33 @@ export default function BarcodeSecretPage() {
       videoRef.current.srcObject = null;
     }
     setIsScanningCamera(false);
+  };
+
+  // Upload Image File Scan
+  const handleImageUploadScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      img.onload = async () => {
+        if ('BarcodeDetector' in window) {
+          // @ts-ignore
+          const detector = new window.BarcodeDetector({ formats: ['code_128', 'code_39', 'qr_code', 'ean_13'] });
+          const barcodes = await detector.detect(img);
+          if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+            setScannedEncryptedText(barcodes[0].rawValue);
+            handleDecryptScannedText(barcodes[0].rawValue);
+            return;
+          }
+        }
+        setScanError("No barcode detected in uploaded image.");
+      };
+    } catch (err) {
+      console.error("Image scan error:", err);
+      setScanError("Error processing image file.");
+    }
   };
 
   const filteredHistory = history.filter(item => 
@@ -352,7 +368,7 @@ export default function BarcodeSecretPage() {
 
           <TabsTrigger value="scanner" className="gap-2 py-2.5">
             <Camera className="w-4 h-4" />
-            <span>Scanner & Decoder</span>
+            <span>Barcode Scanner</span>
           </TabsTrigger>
 
           <TabsTrigger value="history" className="gap-2 py-2.5">
@@ -466,153 +482,122 @@ export default function BarcodeSecretPage() {
           </div>
         </TabsContent>
 
-        {/* TAB 2: BARCODE SCANNER & MANUAL DECODER */}
+        {/* TAB 2: BARCODE SCANNER */}
         <TabsContent value="scanner" className="mt-6 space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Left Box: Camera & Text Barcode Scanner */}
-            <Card className="border-none shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-2">
-                  <Camera className="w-5 h-5 text-primary" />
-                  <span>Barcode Scanner</span>
-                </CardTitle>
-                <CardDescription>
-                  Scan an encrypted barcode using your camera or handheld scanner.
-                </CardDescription>
-              </CardHeader>
+          <Card className="border-none shadow-sm max-w-2xl mx-auto">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Camera className="w-5 h-5 text-primary" />
+                <span>Barcode Scanner</span>
+              </CardTitle>
+              <CardDescription>
+                Scan an encrypted barcode using your camera, hardware scanner, or upload an image.
+              </CardDescription>
+            </CardHeader>
 
-              <CardContent className="space-y-6">
-                {/* Camera Feed Container */}
-                <div className="relative w-full h-48 bg-slate-950 rounded-xl overflow-hidden flex flex-col items-center justify-center border">
-                  {isScanningCamera ? (
-                    <video ref={videoRef} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center gap-2 text-slate-400 p-4 text-center">
-                      <Camera className="w-10 h-10 stroke-1" />
-                      <span className="text-xs">Camera is idle. Click below to activate scanner.</span>
-                    </div>
-                  )}
-
-                  {isScanningCamera && (
-                    <div className="absolute inset-0 border-2 border-emerald-500/60 m-6 rounded-lg pointer-events-none animate-pulse flex items-center justify-center">
-                      <span className="text-[10px] uppercase font-bold text-emerald-400 bg-black/60 px-2 py-0.5 rounded">Scanning Barcode...</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex gap-3">
-                  {!isScanningCamera ? (
-                    <Button onClick={startCameraScanner} className="w-full gap-2">
-                      <Camera className="w-4 h-4" />
-                      <span>Start Camera Scanner</span>
-                    </Button>
-                  ) : (
-                    <Button onClick={stopCameraScanner} variant="destructive" className="w-full gap-2">
-                      <Camera className="w-4 h-4" />
-                      <span>Stop Camera</span>
-                    </Button>
-                  )}
-                </div>
-
-                <div className="relative flex py-1 items-center">
-                  <div className="flex-grow border-t border-muted"></div>
-                  <span className="flex-shrink mx-4 text-xs font-semibold text-muted-foreground uppercase">OR USE HARDWARE SCANNER / PASTE</span>
-                  <div className="flex-grow border-t border-muted"></div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium">Scanned Barcode Text</label>
-                  <div className="flex gap-2">
-                    <Input 
-                      value={scannedEncryptedText}
-                      onChange={(e) => {
-                        setScannedEncryptedText(e.target.value);
-                        if (e.target.value) handleDecryptScannedText(e.target.value);
-                      }}
-                      placeholder="Click here & trigger hardware scanner..."
-                      className="font-mono text-xs"
-                      autoFocus
-                    />
-                    <Button 
-                      variant="outline" 
-                      onClick={() => handleDecryptScannedText(scannedEncryptedText)}
-                      disabled={!scannedEncryptedText}
-                    >
-                      Decrypt
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Scan & Decrypt Result */}
-                {scanError && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-xs font-medium">
-                    {scanError}
+            <CardContent className="space-y-6">
+              {/* Camera Feed Container */}
+              <div className="relative w-full h-56 bg-slate-950 rounded-xl overflow-hidden flex flex-col items-center justify-center border">
+                {isScanningCamera ? (
+                  <video ref={videoRef} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="flex flex-col items-center justify-center gap-2 text-slate-400 p-4 text-center">
+                    <Camera className="w-10 h-10 stroke-1" />
+                    <span className="text-xs">Camera is idle. Click below to activate scanner.</span>
                   </div>
                 )}
 
-                {scanResultCode && (
-                  <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-3">
-                    <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-wider">
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>Successfully Decrypted Barcode</span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 pt-1">
-                      <div>
-                        <span className="text-[10px] uppercase text-muted-foreground font-semibold">Decrypted Secret Code</span>
-                        <div className="text-2xl font-black font-mono text-foreground">{scanResultCode}</div>
-                      </div>
-
-                      <div>
-                        <span className="text-[10px] uppercase text-muted-foreground font-semibold">Original Price</span>
-                        <div className="text-2xl font-black font-mono text-emerald-600">₹{scanResultPrice}</div>
-                      </div>
-                    </div>
+                {isScanningCamera && (
+                  <div className="absolute inset-0 border-2 border-emerald-500/60 m-6 rounded-lg pointer-events-none animate-pulse flex items-center justify-center">
+                    <span className="text-[10px] uppercase font-bold text-emerald-400 bg-black/60 px-2 py-0.5 rounded">Scanning Barcode...</span>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Right Box: Manual Secret Code Decoder */}
-            <Card className="border-none shadow-sm flex flex-col justify-between">
-              <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-2">
-                  <Key className="w-5 h-5 text-primary" />
-                  <span>Manual Secret Code Decoder</span>
-                </CardTitle>
-                <CardDescription>
-                  If you see a secret code on a barcode (e.g. OGH), enter it here to view its numeric price.
-                </CardDescription>
-              </CardHeader>
+              <div className="grid grid-cols-2 gap-3">
+                {!isScanningCamera ? (
+                  <Button onClick={startCameraScanner} className="gap-2">
+                    <Camera className="w-4 h-4" />
+                    <span>Start Camera Scanner</span>
+                  </Button>
+                ) : (
+                  <Button onClick={stopCameraScanner} variant="destructive" className="gap-2">
+                    <Camera className="w-4 h-4" />
+                    <span>Stop Camera</span>
+                  </Button>
+                )}
 
-              <CardContent className="space-y-6 flex-1 flex flex-col justify-center">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Secret Letters Code</label>
+                <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="gap-2">
+                  <Upload className="w-4 h-4 text-blue-500" />
+                  <span>Upload Image Scan</span>
+                </Button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleImageUploadScan} 
+                  accept="image/*" 
+                  className="hidden" 
+                />
+              </div>
+
+              <div className="relative flex py-1 items-center">
+                <div className="flex-grow border-t border-muted"></div>
+                <span className="flex-shrink mx-4 text-xs font-semibold text-muted-foreground uppercase">OR USE HARDWARE SCANNER / PASTE</span>
+                <div className="flex-grow border-t border-muted"></div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-medium">Scanned Barcode Text</label>
+                <div className="flex gap-2">
                   <Input 
-                    value={manualCode}
-                    onChange={(e) => setManualCode(e.target.value.toUpperCase())}
-                    placeholder="e.g. OGH"
-                    className="text-2xl font-black font-mono uppercase tracking-widest text-center h-14"
+                    value={scannedEncryptedText}
+                    onChange={(e) => {
+                      setScannedEncryptedText(e.target.value);
+                      if (e.target.value) handleDecryptScannedText(e.target.value);
+                    }}
+                    placeholder="Click here & trigger hardware scanner..."
+                    className="font-mono text-xs"
+                    autoFocus
                   />
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleDecryptScannedText(scannedEncryptedText)}
+                    disabled={!scannedEncryptedText}
+                  >
+                    Decrypt
+                  </Button>
                 </div>
+              </div>
 
-                <div className="flex justify-center my-2">
-                  <ArrowRight className="w-6 h-6 text-muted-foreground rotate-90" />
+              {/* Scan & Decrypt Result */}
+              {scanError && (
+                <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-xs font-medium">
+                  {scanError}
                 </div>
+              )}
 
-                <div className="p-6 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 text-center space-y-1">
-                  <span className="text-xs font-bold uppercase tracking-widest text-primary">Original Numeric Price</span>
-                  <div className="text-5xl font-black font-mono tracking-tight text-foreground">
-                    ₹{manualPriceResult || '0'}
+              {scanResultCode && (
+                <div className="p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-3">
+                  <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-wider">
+                    <ShieldCheck className="w-5 h-5" />
+                    <span>Successfully Decrypted Barcode</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 pt-2">
+                    <div className="p-3 bg-background rounded-lg border">
+                      <span className="text-[10px] uppercase text-muted-foreground font-bold">Decrypted Secret Code</span>
+                      <div className="text-3xl font-black font-mono text-foreground mt-0.5">{scanResultCode}</div>
+                    </div>
+
+                    <div className="p-3 bg-background rounded-lg border">
+                      <span className="text-[10px] uppercase text-muted-foreground font-bold">Original Price</span>
+                      <div className="text-3xl font-black font-mono text-emerald-600 mt-0.5">₹{scanResultPrice}</div>
+                    </div>
                   </div>
                 </div>
-
-                <div className="text-center text-xs text-muted-foreground leading-relaxed">
-                  Decodes secret letters back into numbers (L=1, O=2, R=3, D=4, G=5, A=6, N=7, E=8, S=9, H=0).
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* TAB 3: STICKER HISTORY */}
