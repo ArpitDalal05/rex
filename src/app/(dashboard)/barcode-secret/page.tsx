@@ -44,11 +44,9 @@ interface HistoryItem {
 export default function BarcodeSecretPage() {
   const [activeTab, setActiveTab] = useState('generator');
 
-  // Encryption Key & Settings State
+  // Encryption Key State
   const [encryptionKey, setEncryptionKey] = useState<string>('REX_SECRET_KEY_2026');
   const [showKey, setShowKey] = useState(false);
-  const [barcodeWidth, setBarcodeWidth] = useState<number>(360);
-  const [barcodeHeight, setBarcodeHeight] = useState<number>(160);
 
   // Generator State
   const [priceInput, setPriceInput] = useState<string>('250');
@@ -75,6 +73,7 @@ export default function BarcodeSecretPage() {
   // Refs
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const isScanningRef = useRef<boolean>(false);
 
   // Load Settings & History from LocalStorage
   useEffect(() => {
@@ -123,13 +122,10 @@ export default function BarcodeSecretPage() {
   useEffect(() => {
     if (canvasRef.current && encryptedData) {
       drawBarcodeToCanvas(canvasRef.current, encryptedData, {
-        width: barcodeWidth,
-        height: barcodeHeight,
-        quietZone: 12,
         secretCodeText: secretCode
       });
     }
-  }, [encryptedData, secretCode, barcodeWidth, barcodeHeight]);
+  }, [encryptedData, secretCode]);
 
   // Manual Secret Code Decoder
   useEffect(() => {
@@ -178,18 +174,12 @@ export default function BarcodeSecretPage() {
     }
   };
 
-  // Export PNG / JPG (Contains ONLY the barcode and secret code text, no header)
+  // Export PNG / JPG (Contains ONLY the barcode and secret code text, no shop title)
   const handleExportImage = (format: 'png' | 'jpg') => {
     if (!encryptedData || !secretCode) return;
 
     const exportCanvas = document.createElement('canvas');
-    exportCanvas.width = barcodeWidth;
-    exportCanvas.height = barcodeHeight;
-    
     drawBarcodeToCanvas(exportCanvas, encryptedData, {
-      width: barcodeWidth,
-      height: barcodeHeight,
-      quietZone: 12,
       secretCodeText: secretCode
     });
 
@@ -269,24 +259,55 @@ export default function BarcodeSecretPage() {
     }
   };
 
-  // Camera Scanner Handler
+  // Camera Scanner Handler with Detection Loop
   const startCameraScanner = async () => {
     setIsScanningCamera(true);
+    isScanningRef.current = true;
     setScanError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        await videoRef.current.play();
+        requestAnimationFrame(scanVideoFrame);
       }
     } catch (err: any) {
       console.error("Camera access error:", err);
       setScanError("Camera access denied or unavailable.");
       setIsScanningCamera(false);
+      isScanningRef.current = false;
+    }
+  };
+
+  const scanVideoFrame = async () => {
+    if (!videoRef.current || !isScanningRef.current) return;
+
+    if ('BarcodeDetector' in window) {
+      try {
+        // @ts-ignore
+        const detector = new window.BarcodeDetector({ formats: ['code_128', 'qr_code', 'ean_13'] });
+        const barcodes = await detector.detect(videoRef.current);
+        if (barcodes && barcodes.length > 0) {
+          const rawValue = barcodes[0].rawValue;
+          if (rawValue) {
+            setScannedEncryptedText(rawValue);
+            handleDecryptScannedText(rawValue);
+            stopCameraScanner();
+            return;
+          }
+        }
+      } catch (e) {
+        // continue loop
+      }
+    }
+
+    if (isScanningRef.current) {
+      requestAnimationFrame(scanVideoFrame);
     }
   };
 
   const stopCameraScanner = () => {
+    isScanningRef.current = false;
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach(track => track.stop());
@@ -311,7 +332,7 @@ export default function BarcodeSecretPage() {
             <span>Encrypted Barcode Secret System</span>
           </h1>
           <p className="text-muted-foreground">
-            Convert prices to secret letter codes, encrypt into compact Code 128 barcodes, print stickers, and scan to decrypt.
+            Convert prices to secret letter codes, encrypt into standard Code 128 barcodes, print stickers, and scan to decrypt.
           </p>
         </div>
 
@@ -401,7 +422,7 @@ export default function BarcodeSecretPage() {
               </CardContent>
             </Card>
 
-            {/* Right Card: Compact Barcode Preview & Export Controls */}
+            {/* Right Card: Crisp Code 128 Barcode Preview & Export Controls */}
             <Card className="border-none shadow-sm flex flex-col justify-between">
               <CardHeader>
                 <CardTitle className="text-xl flex items-center gap-2">
@@ -409,14 +430,14 @@ export default function BarcodeSecretPage() {
                   <span>Barcode Preview</span>
                 </CardTitle>
                 <CardDescription>
-                  Compact Code 128 barcode preview with embedded secret code.
+                  100% Scanner-readable Code 128 barcode preview with embedded secret code.
                 </CardDescription>
               </CardHeader>
 
               <CardContent className="space-y-6 flex-1 flex flex-col justify-center items-center">
-                {/* Physical Barcode Preview Container (Exact match to reference image) */}
-                <div className="w-full max-w-[340px] p-4 bg-white rounded-lg border-2 border-slate-300 shadow-md flex flex-col items-center justify-center select-none">
-                  <canvas ref={canvasRef} className="w-full max-h-[140px] object-contain" />
+                {/* Crisp Canvas Container */}
+                <div className="w-full max-w-[360px] p-4 bg-white rounded-lg border-2 border-slate-300 shadow-md flex flex-col items-center justify-center select-none overflow-x-auto">
+                  <canvas ref={canvasRef} className="w-full max-h-[160px] object-contain" />
                 </div>
 
                 <div className="text-center text-xs text-muted-foreground max-w-xs">
@@ -456,7 +477,7 @@ export default function BarcodeSecretPage() {
                   <span>Barcode Scanner</span>
                 </CardTitle>
                 <CardDescription>
-                  Scan an encrypted barcode using your camera or paste the scanned barcode string.
+                  Scan an encrypted barcode using your camera or handheld scanner.
                 </CardDescription>
               </CardHeader>
 
@@ -495,7 +516,7 @@ export default function BarcodeSecretPage() {
 
                 <div className="relative flex py-1 items-center">
                   <div className="flex-grow border-t border-muted"></div>
-                  <span className="flex-shrink mx-4 text-xs font-semibold text-muted-foreground uppercase">OR PASTE SCANNED STRING</span>
+                  <span className="flex-shrink mx-4 text-xs font-semibold text-muted-foreground uppercase">OR USE HARDWARE SCANNER / PASTE</span>
                   <div className="flex-grow border-t border-muted"></div>
                 </div>
 
@@ -508,8 +529,9 @@ export default function BarcodeSecretPage() {
                         setScannedEncryptedText(e.target.value);
                         if (e.target.value) handleDecryptScannedText(e.target.value);
                       }}
-                      placeholder="Paste scanned barcode string..."
+                      placeholder="Click here & trigger hardware scanner..."
                       className="font-mono text-xs"
+                      autoFocus
                     />
                     <Button 
                       variant="outline" 
@@ -675,7 +697,7 @@ export default function BarcodeSecretPage() {
                 <span>Barcode & Encryption Settings</span>
               </CardTitle>
               <CardDescription>
-                Customize your secret encryption key and barcode label dimensions.
+                Customize your secret encryption key passphrase.
               </CardDescription>
             </CardHeader>
 
@@ -705,31 +727,6 @@ export default function BarcodeSecretPage() {
                 <p className="text-xs text-muted-foreground">
                   Only scanners configured with this exact key can decrypt barcodes generated by your app.
                 </p>
-              </div>
-
-              {/* Barcode Dimension Controls */}
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Barcode Width (px)</label>
-                  <Input 
-                    type="number"
-                    value={barcodeWidth}
-                    onChange={(e) => setBarcodeWidth(Number(e.target.value) || 360)}
-                    min={200}
-                    max={600}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Barcode Height (px)</label>
-                  <Input 
-                    type="number"
-                    value={barcodeHeight}
-                    onChange={(e) => setBarcodeHeight(Number(e.target.value) || 160)}
-                    min={60}
-                    max={300}
-                  />
-                </div>
               </div>
             </CardContent>
           </Card>

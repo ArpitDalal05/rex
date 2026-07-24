@@ -52,28 +52,6 @@ export function decodeSecretCodeToPrice(code: string): string {
   return result;
 }
 
-// Helper Base64URL Functions
-function bytesToBase64Url(bytes: Uint8Array): string {
-  let bin = '';
-  for (let i = 0; i < bytes.length; i++) {
-    bin += String.fromCharCode(bytes[i]);
-  }
-  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-function base64UrlToBytes(base64url: string): Uint8Array {
-  let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
-  while (base64.length % 4) {
-    base64 += '=';
-  }
-  const bin = atob(base64);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) {
-    bytes[i] = bin.charCodeAt(i);
-  }
-  return bytes;
-}
-
 // AES Key derivation using SHA-256
 async function getAESKey(passphrase: string): Promise<CryptoKey> {
   const enc = new TextEncoder();
@@ -87,13 +65,13 @@ async function getAESKey(passphrase: string): Promise<CryptoKey> {
   );
 }
 
-// Compact AES-256-GCM Encryption (Base64URL output for compact barcodes)
+// Compact AES-256-GCM Encryption (produces clean 22-char uppercase Hex string for 100% Code 128 scanner readability)
 export async function encryptSecretCode(text: string, passKey: string): Promise<string> {
   if (typeof window === 'undefined' || !window.crypto || !window.crypto.subtle) {
     throw new Error('Web Crypto API is not supported in this environment');
   }
   const key = await getAESKey(passKey || 'REX_BARCODE_SECRET_DEFAULT_KEY');
-  const iv = window.crypto.getRandomValues(new Uint8Array(6));
+  const iv = window.crypto.getRandomValues(new Uint8Array(4)); // 4-byte IV
   const enc = new TextEncoder();
   const ciphertextBuffer = await window.crypto.subtle.encrypt(
     { name: 'AES-GCM', iv, tagLength: 32 },
@@ -105,52 +83,56 @@ export async function encryptSecretCode(text: string, passKey: string): Promise<
   combined.set(iv, 0);
   combined.set(new Uint8Array(ciphertextBuffer), iv.length);
 
-  return bytesToBase64Url(combined);
+  return Array.from(combined)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
+    .toUpperCase();
 }
 
-// AES-256-GCM Decryption (supports compact Base64URL and legacy Hex)
+// AES-256-GCM Decryption
 export async function decryptBarcodeData(encryptedText: string, passKey: string): Promise<string> {
   if (typeof window === 'undefined' || !window.crypto || !window.crypto.subtle) {
     throw new Error('Web Crypto API is not supported in this environment');
   }
-  const cleanInput = encryptedText.trim();
-  const key = await getAESKey(passKey || 'REX_BARCODE_SECRET_DEFAULT_KEY');
+  const cleanInput = encryptedText.trim().replace(/[^0-9A-Fa-f]/g, '');
+  if (cleanInput.length < 14) {
+    throw new Error('Invalid barcode format or length');
+  }
 
-  // Check for legacy Hex format
-  if (/^[0-9A-Fa-f]+$/.test(cleanInput) && cleanInput.length >= 32) {
-    const bytes = new Uint8Array(cleanInput.length / 2);
-    for (let i = 0; i < cleanInput.length; i += 2) {
-      bytes[i / 2] = parseInt(cleanInput.substring(i, i + 2), 16);
-    }
-    const iv = bytes.slice(0, 12);
-    const ciphertext = bytes.slice(12);
+  const key = await getAESKey(passKey || 'REX_BARCODE_SECRET_DEFAULT_KEY');
+  const bytes = new Uint8Array(cleanInput.length / 2);
+  for (let i = 0; i < cleanInput.length; i += 2) {
+    bytes[i / 2] = parseInt(cleanInput.substring(i, i + 2), 16);
+  }
+
+  // 4-byte IV format
+  const iv = bytes.slice(0, 4);
+  const ciphertext = bytes.slice(4);
+
+  try {
     const decryptedBuffer = await window.crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
+      { name: 'AES-GCM', iv, tagLength: 32 },
       key,
       ciphertext
     );
     return new TextDecoder().decode(decryptedBuffer);
+  } catch (err) {
+    // Legacy 12-byte IV format fallback
+    if (bytes.length >= 28) {
+      const legacyIv = bytes.slice(0, 12);
+      const legacyCt = bytes.slice(12);
+      const legacyBuffer = await window.crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: legacyIv },
+        key,
+        legacyCt
+      );
+      return new TextDecoder().decode(legacyBuffer);
+    }
+    throw err;
   }
-
-  // Compact Base64URL format
-  const bytes = base64UrlToBytes(cleanInput);
-  if (bytes.length < 7) {
-    throw new Error('Invalid barcode data format');
-  }
-
-  const iv = bytes.slice(0, 6);
-  const ciphertext = bytes.slice(6);
-
-  const decryptedBuffer = await window.crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv, tagLength: 32 },
-    key,
-    ciphertext
-  );
-
-  return new TextDecoder().decode(decryptedBuffer);
 }
 
-// Code 128 (Code 128B) Barcode Patterns Table
+// Code 128 (Code 128B) Barcode Patterns Table (Standard ISO/IEC 15417)
 const CODE128_PATTERNS: string[] = [
   "11011001100", "11001101100", "11001100110", "10010011000", "10010001100",
   "10001001100", "10011001000", "10011000100", "10001100100", "11001001000",
@@ -204,7 +186,7 @@ export function generateCode128Binary(text: string): string {
 export function drawBarcodeToCanvas(
   canvas: HTMLCanvasElement, 
   text: string, 
-  options?: { width?: number; height?: number; quietZone?: number; secretCodeText?: string }
+  options?: { secretCodeText?: string }
 ) {
   const binary = generateCode128Binary(text);
   if (!binary) return;
@@ -212,50 +194,44 @@ export function drawBarcodeToCanvas(
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  const width = options?.width || 360;
-  const height = options?.height || 180;
-  const quietZone = options?.quietZone || 12;
-  const secretText = options?.secretCodeText;
+  // 3px module width for 100% crisp scanner recognition
+  const moduleWidth = 3; 
+  const quietZoneModules = 12; // 12 module width quiet zone
+  const quietZonePx = quietZoneModules * moduleWidth; // 36px quiet zone
 
-  canvas.width = width;
-  canvas.height = height;
-
-  // Background
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, width, height);
-
-  // Compute module width to fit binary bars within width - 2*quietZone
-  const availableWidth = width - quietZone * 2;
-  const moduleWidth = Math.max(2, Math.floor(availableWidth / binary.length));
   const barcodeDrawWidth = binary.length * moduleWidth;
-  const startX = Math.floor((width - barcodeDrawWidth) / 2);
+  const canvasWidth = barcodeDrawWidth + quietZonePx * 2;
+  const canvasHeight = options?.secretCodeText ? 180 : 140;
 
-  const barHeight = secretText ? height - 42 : height - 16;
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
 
-  // Draw black bars
+  // Disable smoothing for sharp vector-like edges
+  ctx.imageSmoothingEnabled = false;
+
+  // Pure White Background
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+  // Uninterrupted Tall Black Bars (topY=10 to 140px height)
+  const barHeight = options?.secretCodeText ? 130 : 124;
+  const topY = 10;
+
   ctx.fillStyle = '#000000';
   for (let i = 0; i < binary.length; i++) {
     if (binary[i] === '1') {
-      const x = startX + i * moduleWidth;
-      // Draw tall bars
-      ctx.fillRect(x, 8, moduleWidth, barHeight);
+      const x = quietZonePx + i * moduleWidth;
+      ctx.fillRect(x, topY, moduleWidth, barHeight);
     }
   }
 
-  // Draw Secret Code text below bars if provided (matching reference image style)
-  if (secretText) {
-    const textY = height - 10;
-    ctx.font = 'bold 26px sans-serif';
-    ctx.textAlign = 'center';
-    
-    // Clear a white box behind the text if overlapping
-    const textMetrics = ctx.measureText(secretText);
-    const textWidth = textMetrics.width + 16;
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect((width - textWidth) / 2, textY - 26, textWidth, 32);
-
-    // Draw bold black text
+  // Draw Secret Code text cleanly BELOW the bars on pure white background
+  if (options?.secretCodeText) {
+    const textY = canvasHeight - 8;
     ctx.fillStyle = '#000000';
-    ctx.fillText(secretText, width / 2, textY);
+    ctx.font = 'bold 24px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(options.secretCodeText, canvasWidth / 2, textY);
   }
 }
