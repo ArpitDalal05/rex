@@ -162,57 +162,80 @@ export default function BarcodeSecretPage() {
     link.click();
   };
 
-  // Direct Barcode Print
+  // Direct Barcode Print — Mobile Chrome compatible using Blob URL
   const handlePrintSticker = () => {
     if (!canvasRef.current) return;
 
-    const barcodeDataUrl = canvasRef.current.toDataURL('image/png');
+    // Draw a fresh high-res canvas for printing
+    const printCanvas = document.createElement('canvas');
+    drawBarcodeToCanvas(printCanvas, encryptedData, { secretCodeText: secretCode });
 
-    const printWindow = window.open('', '_blank', 'width=400,height=300');
-    if (!printWindow) return;
+    printCanvas.toBlob((blob) => {
+      if (!blob) return;
+      const blobUrl = URL.createObjectURL(blob);
 
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Print Barcode - ${secretCode}</title>
-          <style>
-            @page {
-              size: 50mm 30mm;
-              margin: 0;
-            }
-            body {
-              font-family: sans-serif;
-              margin: 0;
-              padding: 4px;
-              text-align: center;
-              background: #fff;
-              color: #000;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              height: 100vh;
-            }
-            .barcode-img {
-              width: 95%;
-              height: auto;
-              max-height: 95%;
-              object-fit: contain;
-            }
-          </style>
-        </head>
-        <body>
-          <img src="${barcodeDataUrl}" class="barcode-img" />
-          <script>
-            window.onload = function() {
-              window.print();
-              setTimeout(function() { window.close(); }, 500);
-            };
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        URL.revokeObjectURL(blobUrl);
+        return;
+      }
+
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Barcode - ${secretCode}</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <style>
+              @page {
+                size: 80mm auto;
+                margin: 2mm;
+              }
+              * { box-sizing: border-box; margin: 0; padding: 0; }
+              html, body {
+                background: #fff;
+                width: 80mm;
+              }
+              .wrap {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 4px;
+              }
+              img {
+                width: 100%;
+                height: auto;
+                display: block;
+                image-rendering: pixelated;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="wrap">
+              <img id="bc" src="${blobUrl}" />
+            </div>
+            <script>
+              var img = document.getElementById('bc');
+              function doPrint() {
+                window.print();
+                setTimeout(function() {
+                  URL.revokeObjectURL('${blobUrl}');
+                  window.close();
+                }, 1000);
+              }
+              if (img.complete) {
+                setTimeout(doPrint, 600);
+              } else {
+                img.onload = function() { setTimeout(doPrint, 600); };
+                img.onerror = function() { setTimeout(doPrint, 600); };
+              }
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }, 'image/png');
   };
 
   // Decrypt Barcode Text
