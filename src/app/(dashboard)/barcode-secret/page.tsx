@@ -7,11 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { 
-  Barcode, 
+  QrCode, 
+  Lock, 
   Printer, 
   Download, 
   Camera, 
   History, 
+  Settings, 
   Sparkles, 
   Search, 
   Trash2, 
@@ -25,7 +27,7 @@ import {
   decodeSecretCodeToPrice, 
   encryptSecretCode, 
   decryptBarcodeData, 
-  drawBarcodeToCanvas 
+  drawQRCodeToCanvas 
 } from '@/lib/barcodeSecret';
 
 interface HistoryItem {
@@ -106,10 +108,10 @@ export default function BarcodeSecretPage() {
     return () => { isMounted = false; };
   }, [priceInput, encryptionKey]);
 
-  // Redraw Barcode Canvas when Encrypted Data or Secret Code changes
+  // Redraw QR Code Canvas when Encrypted Data or Secret Code changes
   useEffect(() => {
     if (canvasRef.current && encryptedData) {
-      drawBarcodeToCanvas(canvasRef.current, encryptedData, {
+      drawQRCodeToCanvas(canvasRef.current, encryptedData, {
         secretCodeText: secretCode
       });
     }
@@ -146,99 +148,95 @@ export default function BarcodeSecretPage() {
   };
 
   // Export PNG / JPG
-  const handleExportImage = (format: 'png' | 'jpg') => {
+  const handleExportImage = async (format: 'png' | 'jpg') => {
     if (!encryptedData || !secretCode) return;
 
     const exportCanvas = document.createElement('canvas');
-    drawBarcodeToCanvas(exportCanvas, encryptedData, {
+    await drawQRCodeToCanvas(exportCanvas, encryptedData, {
       secretCodeText: secretCode
     });
 
     const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
     const dataUrl = exportCanvas.toDataURL(mimeType, 1.0);
     const link = document.createElement('a');
-    link.download = `barcode_${secretCode}_${Date.now()}.${format}`;
+    link.download = `qrcode_${secretCode}_${Date.now()}.${format}`;
     link.href = dataUrl;
     link.click();
   };
 
-  // Direct Barcode Print — Mobile Chrome compatible using Blob URL
+  // Direct Mobile / Thermal Printer Print (Using Same-Page iFrame to avoid Android popup freeze & stuck preview)
   const handlePrintSticker = () => {
     if (!canvasRef.current) return;
 
-    // Draw a fresh high-res canvas for printing
-    const printCanvas = document.createElement('canvas');
-    drawBarcodeToCanvas(printCanvas, encryptedData, { secretCodeText: secretCode });
+    const qrDataUrl = canvasRef.current.toDataURL('image/png');
 
-    printCanvas.toBlob((blob) => {
-      if (!blob) return;
-      const blobUrl = URL.createObjectURL(blob);
+    // Clean up any old print iframe
+    let iframe = document.getElementById('print-iframe') as HTMLIFrameElement;
+    if (iframe) {
+      iframe.remove();
+    }
 
-      const printWindow = window.open('', '_blank');
-      if (!printWindow) {
-        URL.revokeObjectURL(blobUrl);
-        return;
-      }
+    iframe = document.createElement('iframe');
+    iframe.id = 'print-iframe';
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0px';
+    iframe.style.height = '0px';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
 
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Barcode - ${secretCode}</title>
-            <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <style>
-              @page {
-                size: 80mm auto;
-                margin: 2mm;
-              }
-              * { box-sizing: border-box; margin: 0; padding: 0; }
-              html, body {
-                background: #fff;
-                width: 80mm;
-              }
-              .wrap {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                padding: 4px;
-              }
-              img {
-                width: 100%;
-                height: auto;
-                display: block;
-                image-rendering: pixelated;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="wrap">
-              <img id="bc" src="${blobUrl}" />
-            </div>
-            <script>
-              var img = document.getElementById('bc');
-              function doPrint() {
+    const doc = iframe.contentWindow?.document;
+    if (!doc) return;
+
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print QR Code - ${secretCode}</title>
+          <style>
+            @page {
+              size: 58mm auto;
+              margin: 0;
+            }
+            body {
+              font-family: monospace, sans-serif;
+              margin: 0;
+              padding: 4px;
+              text-align: center;
+              background: #fff;
+              color: #000;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+            }
+            .qr-img {
+              width: 80%;
+              max-width: 220px;
+              height: auto;
+              object-fit: contain;
+            }
+          </style>
+        </head>
+        <body>
+          <img src="${qrDataUrl}" class="qr-img" />
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.focus();
                 window.print();
-                setTimeout(function() {
-                  URL.revokeObjectURL('${blobUrl}');
-                  window.close();
-                }, 1000);
-              }
-              if (img.complete) {
-                setTimeout(doPrint, 600);
-              } else {
-                img.onload = function() { setTimeout(doPrint, 600); };
-                img.onerror = function() { setTimeout(doPrint, 600); };
-              }
-            </script>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-    }, 'image/png');
+              }, 200);
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    doc.close();
   };
 
-  // Decrypt Barcode Text
+  // Decrypt QR Code Text
   const handleDecryptScannedText = async (text: string) => {
     try {
       setScanError(null);
@@ -247,7 +245,7 @@ export default function BarcodeSecretPage() {
       setScanResultPrice(decodeSecretCodeToPrice(code));
     } catch (err: any) {
       console.error("Decryption failed:", err);
-      setScanError("Failed to decrypt barcode! Invalid encryption key or corrupted data.");
+      setScanError("Failed to decrypt code! Invalid encryption key or corrupted data.");
       setScanResultCode(null);
       setScanResultPrice(null);
     }
@@ -281,7 +279,7 @@ export default function BarcodeSecretPage() {
     if ('BarcodeDetector' in window) {
       try {
         // @ts-ignore
-        const detector = new window.BarcodeDetector({ formats: ['code_128', 'code_39', 'qr_code', 'ean_13'] });
+        const detector = new window.BarcodeDetector({ formats: ['qr_code', 'code_128', 'code_39', 'ean_13'] });
         const barcodes = await detector.detect(videoRef.current);
         if (barcodes && barcodes.length > 0) {
           const rawValue = barcodes[0].rawValue;
@@ -323,7 +321,7 @@ export default function BarcodeSecretPage() {
       img.onload = async () => {
         if ('BarcodeDetector' in window) {
           // @ts-ignore
-          const detector = new window.BarcodeDetector({ formats: ['code_128', 'code_39', 'qr_code', 'ean_13'] });
+          const detector = new window.BarcodeDetector({ formats: ['qr_code', 'code_128', 'code_39', 'ean_13'] });
           const barcodes = await detector.detect(img);
           if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
             setScannedEncryptedText(barcodes[0].rawValue);
@@ -331,7 +329,7 @@ export default function BarcodeSecretPage() {
             return;
           }
         }
-        setScanError("No barcode detected in uploaded image.");
+        setScanError("No QR Code detected in uploaded image.");
       };
     } catch (err) {
       console.error("Image scan error:", err);
@@ -351,11 +349,11 @@ export default function BarcodeSecretPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Barcode className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
-            <span>Encrypted Barcode System</span>
+            <QrCode className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
+            <span>Encrypted QR Code System</span>
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Convert prices to secret letter codes, encrypt into standard Code 128 barcodes, print stickers, and scan to decrypt.
+            Convert prices to secret letter codes, encrypt into QR codes, print stickers, and scan to decrypt.
           </p>
         </div>
 
@@ -372,7 +370,7 @@ export default function BarcodeSecretPage() {
             value="generator" 
             className="flex items-center justify-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm font-bold rounded-lg transition-all"
           >
-            <Barcode className="w-4 h-4 shrink-0" />
+            <QrCode className="w-4 h-4 shrink-0" />
             <span className="truncate">Generator</span>
           </TabsTrigger>
 
@@ -393,7 +391,7 @@ export default function BarcodeSecretPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* TAB 1: STICKER GENERATOR */}
+        {/* TAB 1: QR CODE GENERATOR */}
         <TabsContent value="generator" className="mt-6 space-y-6">
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Left Card: Input & Conversion Details */}
@@ -404,7 +402,7 @@ export default function BarcodeSecretPage() {
                   <span>Encode Price & Encrypt</span>
                 </CardTitle>
                 <CardDescription className="text-xs sm:text-sm">
-                  Enter a numeric price. Digits are mapped to secret letters and encrypted into the barcode.
+                  Enter a numeric price. Digits are mapped to secret letters and encrypted into the QR code.
                 </CardDescription>
               </CardHeader>
 
@@ -449,26 +447,26 @@ export default function BarcodeSecretPage() {
               </CardContent>
             </Card>
 
-            {/* Right Card: Crisp Code 128 Barcode Preview & Export Controls */}
+            {/* Right Card: QR Code Preview & Export Controls */}
             <Card className="border-none shadow-sm flex flex-col justify-between">
               <CardHeader className="p-4 sm:p-6">
                 <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
                   <Printer className="w-5 h-5 text-primary" />
-                  <span>Barcode Preview</span>
+                  <span>QR Code Preview</span>
                 </CardTitle>
                 <CardDescription className="text-xs sm:text-sm">
-                  100% Scanner-readable Code 128 barcode preview with embedded secret code.
+                  Encrypted QR code preview with embedded secret code.
                 </CardDescription>
               </CardHeader>
 
               <CardContent className="p-4 sm:p-6 pt-0 space-y-6 flex-1 flex flex-col justify-center items-center">
-                {/* Responsive Canvas Container */}
-                <div className="w-full max-w-full p-3 sm:p-4 bg-white rounded-xl border-2 border-slate-300 shadow-sm flex flex-col items-center justify-center select-none overflow-x-auto">
+                {/* Canvas Container */}
+                <div className="w-full max-w-[280px] p-4 bg-white rounded-xl border-2 border-slate-300 shadow-sm flex flex-col items-center justify-center select-none">
                   <canvas ref={canvasRef} className="max-w-full h-auto object-contain" />
                 </div>
 
                 <div className="text-center text-xs text-muted-foreground max-w-xs">
-                  Barcode contains encrypted data only. Secret Code (<span className="font-semibold text-foreground">{secretCode || '---'}</span>) is printed below the bars.
+                  QR Code contains encrypted data only. Secret Code (<span className="font-semibold text-foreground">{secretCode || '---'}</span>) is printed below the code.
                 </div>
               </CardContent>
 
@@ -493,16 +491,16 @@ export default function BarcodeSecretPage() {
           </div>
         </TabsContent>
 
-        {/* TAB 2: BARCODE SCANNER */}
+        {/* TAB 2: QR CODE SCANNER */}
         <TabsContent value="scanner" className="mt-6 space-y-6">
           <Card className="border-none shadow-sm max-w-2xl mx-auto">
             <CardHeader className="p-4 sm:p-6">
               <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
                 <Camera className="w-5 h-5 text-primary" />
-                <span>Barcode Scanner</span>
+                <span>QR Code Scanner</span>
               </CardTitle>
               <CardDescription className="text-xs sm:text-sm">
-                Scan an encrypted barcode using your camera, hardware scanner, or upload an image.
+                Scan an encrypted QR code using your camera, scanner, or upload an image.
               </CardDescription>
             </CardHeader>
 
@@ -520,7 +518,7 @@ export default function BarcodeSecretPage() {
 
                 {isScanningCamera && (
                   <div className="absolute inset-0 border-2 border-emerald-500/60 m-6 rounded-lg pointer-events-none animate-pulse flex items-center justify-center">
-                    <span className="text-[10px] uppercase font-bold text-emerald-400 bg-black/60 px-2 py-0.5 rounded">Scanning Barcode...</span>
+                    <span className="text-[10px] uppercase font-bold text-emerald-400 bg-black/60 px-2 py-0.5 rounded">Scanning QR Code...</span>
                   </div>
                 )}
               </div>
@@ -558,7 +556,7 @@ export default function BarcodeSecretPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-medium">Scanned Barcode Text</label>
+                <label className="text-xs font-medium">Scanned QR Code Text</label>
                 <div className="flex gap-2">
                   <Input 
                     value={scannedEncryptedText}
@@ -566,7 +564,7 @@ export default function BarcodeSecretPage() {
                       setScannedEncryptedText(e.target.value);
                       if (e.target.value) handleDecryptScannedText(e.target.value);
                     }}
-                    placeholder="Click here & trigger hardware scanner..."
+                    placeholder="Click here & trigger scanner..."
                     className="font-mono text-xs"
                     autoFocus
                   />
@@ -592,7 +590,7 @@ export default function BarcodeSecretPage() {
                 <div className="p-4 sm:p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-3">
                   <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-wider">
                     <ShieldCheck className="w-5 h-5" />
-                    <span>Successfully Decrypted Barcode</span>
+                    <span>Successfully Decrypted Code</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 sm:gap-4 pt-2">
@@ -622,7 +620,7 @@ export default function BarcodeSecretPage() {
                   <span>Generated Sticker History</span>
                 </CardTitle>
                 <CardDescription className="text-xs sm:text-sm">
-                  View and manage past stickers saved locally on this device.
+                  View and manage past QR code stickers saved locally on this device.
                 </CardDescription>
               </div>
 
@@ -655,7 +653,7 @@ export default function BarcodeSecretPage() {
                           <div className="text-2xl font-black font-mono tracking-wider text-primary mt-1">{item.secretCode}</div>
                           <span className="text-xs text-muted-foreground">Original Price: <strong className="text-foreground">₹{item.price}</strong></span>
                         </div>
-                        <Badge variant="secondary" className="font-mono text-[10px]">Code 128</Badge>
+                        <Badge variant="secondary" className="font-mono text-[10px]">QR Code</Badge>
                       </div>
 
                       <div className="flex gap-2 pt-2 border-t">
@@ -669,7 +667,7 @@ export default function BarcodeSecretPage() {
                           }}
                         >
                           <RefreshCw className="w-3.5 h-3.5" />
-                          <span>Load Barcode</span>
+                          <span>Load QR Code</span>
                         </Button>
                       </div>
                     </div>

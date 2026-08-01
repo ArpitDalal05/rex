@@ -1,4 +1,5 @@
-// Secret Code Mapping & AES-256-GCM Encrypted Barcode Utility
+// Secret Code Mapping & AES-256-GCM Encrypted QR Code Utility
+import QRCode from 'qrcode';
 
 export const DIGIT_TO_LETTER: Record<string, string> = {
   '1': 'L',
@@ -65,7 +66,7 @@ async function getAESKey(passphrase: string): Promise<CryptoKey> {
   );
 }
 
-// Compact AES-256-GCM Encryption (produces clean 22-char uppercase Hex string for 100% Code 128 scanner readability)
+// Compact AES-256-GCM Encryption
 export async function encryptSecretCode(text: string, passKey: string): Promise<string> {
   if (typeof window === 'undefined' || !window.crypto || !window.crypto.subtle) {
     throw new Error('Web Crypto API is not supported in this environment');
@@ -96,7 +97,7 @@ export async function decryptBarcodeData(encryptedText: string, passKey: string)
   }
   const cleanInput = encryptedText.trim().replace(/[^0-9A-Fa-f]/g, '');
   if (cleanInput.length < 14) {
-    throw new Error('Invalid barcode format or length');
+    throw new Error('Invalid code format or length');
   }
 
   const key = await getAESKey(passKey || 'REX_BARCODE_SECRET_DEFAULT_KEY');
@@ -132,100 +133,43 @@ export async function decryptBarcodeData(encryptedText: string, passKey: string)
   }
 }
 
-// Code 128 (Code 128B) Barcode Patterns Table (Standard ISO/IEC 15417)
-const CODE128_PATTERNS: string[] = [
-  "11011001100", "11001101100", "11001100110", "10010011000", "10010001100",
-  "10001001100", "10011001000", "10011000100", "10001100100", "11001001000",
-  "11001000100", "11000100100", "10110011100", "10011011100", "10011001110",
-  "10111001100", "10011101100", "10011100110", "11001110010", "11001011100",
-  "11001001110", "11011100100", "11001110100", "11101101110", "11101001100",
-  "11100101100", "11100100110", "11101100100", "11100110100", "11100110010",
-  "11011011000", "11011000110", "11000110110", "10100011000", "10001011000",
-  "10001000110", "10110001000", "10001101000", "10001100010", "11010001000",
-  "11000101000", "11000100010", "10110111000", "10110001110", "10001101110",
-  "10111011000", "10111000110", "10001110110", "11101110110", "11010001110",
-  "11000101110", "11011101000", "11011100010", "11011101110", "11101011000",
-  "11101000110", "11100010110", "11101101000", "11101100010", "11100011010",
-  "11101111010", "11001000010", "11110001010", "10100110000", "10100001100",
-  "10010110000", "10010000110", "10000101100", "10000100110", "10110010000",
-  "10110000100", "10011010000", "10011000010", "10000110100", "10000110010",
-  "11000010010", "11001010000", "11110111010", "11000010100", "10001111010",
-  "10100111100", "10010111100", "10010011110", "10111100100", "10011110100",
-  "10011110010", "11110100100", "11110010100", "11110010010", "11011011110",
-  "11011110110", "11110110110", "10101111000", "10100011110", "10001011110",
-  "10111101000", "10111100010", "11110101000", "11110100010", "10111011110",
-  "10111101110", "11101011110", "11110101110", "11010000100", "11010010000", // 104: Start Code B
-  "11010011000", // 105: Start Code C
-  "1100011101011" // 106: Stop Code
-];
-
-export function generateCode128Binary(text: string): string {
-  if (!text) return '';
-  
-  const startCodeB = 104;
-  let checksum = startCodeB;
-  let binaryStr = CODE128_PATTERNS[startCodeB];
-
-  for (let i = 0; i < text.length; i++) {
-    const charCode = text.charCodeAt(i);
-    let codeIndex = charCode - 32;
-    if (codeIndex < 0 || codeIndex > 95) {
-      codeIndex = 31;
-    }
-    checksum += codeIndex * (i + 1);
-    binaryStr += CODE128_PATTERNS[codeIndex];
-  }
-
-  const checksumIndex = checksum % 103;
-  binaryStr += CODE128_PATTERNS[checksumIndex];
-  binaryStr += CODE128_PATTERNS[106];
-
-  return binaryStr;
-}
-
-export function drawBarcodeToCanvas(
+// Draw Encrypted QR Code to Canvas with Secret Code Text Below
+export async function drawQRCodeToCanvas(
   canvas: HTMLCanvasElement, 
   text: string, 
   options?: { secretCodeText?: string }
 ) {
-  const binary = generateCode128Binary(text);
-  if (!binary) return;
+  if (!text) return;
 
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-
-  // 3px module width for 100% crisp scanner recognition
-  const moduleWidth = 3; 
-  const quietZoneModules = 12; // 12 module width quiet zone
-  const quietZonePx = quietZoneModules * moduleWidth; // 36px quiet zone
-
-  const barcodeDrawWidth = binary.length * moduleWidth;
-  const canvasWidth = barcodeDrawWidth + quietZonePx * 2;
-  const canvasHeight = options?.secretCodeText ? 180 : 140;
+  const qrSize = 260;
+  const canvasWidth = qrSize;
+  const canvasHeight = options?.secretCodeText ? qrSize + 40 : qrSize;
 
   canvas.width = canvasWidth;
   canvas.height = canvasHeight;
 
-  // Disable smoothing for sharp vector-like edges
-  ctx.imageSmoothingEnabled = false;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
 
-  // Pure White Background
+  // Background
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-  // Uninterrupted Tall Black Bars (topY=10 to 140px height)
-  const barHeight = options?.secretCodeText ? 130 : 124;
-  const topY = 10;
+  // Temporary canvas to generate high resolution QR Code
+  const tempCanvas = document.createElement('canvas');
+  await QRCode.toCanvas(tempCanvas, text, {
+    width: qrSize,
+    margin: 2,
+    color: {
+      dark: '#000000',
+      light: '#FFFFFF'
+    },
+    errorCorrectionLevel: 'M'
+  });
 
-  ctx.fillStyle = '#000000';
-  for (let i = 0; i < binary.length; i++) {
-    if (binary[i] === '1') {
-      const x = quietZonePx + i * moduleWidth;
-      ctx.fillRect(x, topY, moduleWidth, barHeight);
-    }
-  }
+  ctx.drawImage(tempCanvas, 0, 0, qrSize, qrSize);
 
-  // Draw Secret Code text cleanly BELOW the bars on pure white background
+  // Draw Secret Code text cleanly BELOW the QR Code
   if (options?.secretCodeText) {
     const textY = canvasHeight - 8;
     ctx.fillStyle = '#000000';
@@ -235,3 +179,6 @@ export function drawBarcodeToCanvas(
     ctx.fillText(options.secretCodeText, canvasWidth / 2, textY);
   }
 }
+
+// Retain alias for backwards compatibility
+export const drawBarcodeToCanvas = drawQRCodeToCanvas;
