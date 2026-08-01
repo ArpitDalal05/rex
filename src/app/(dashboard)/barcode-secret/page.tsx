@@ -365,29 +365,29 @@ export default function BarcodeSecretPage() {
 
       {/* Main Tabs Navigation */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 w-full h-auto p-1.5 bg-muted/80 rounded-xl gap-1.5 border">
+        <TabsList className="grid grid-cols-3 w-full max-w-xl mx-auto h-12 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 shadow-inner">
           <TabsTrigger 
             value="generator" 
-            className="flex items-center justify-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm font-bold rounded-lg transition-all"
+            className="flex items-center justify-center gap-2 h-full px-4 rounded-lg font-semibold text-xs sm:text-sm text-slate-600 dark:text-slate-300 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[selected]:bg-white data-[selected]:text-slate-900 data-[selected]:shadow-sm transition-all"
           >
             <QrCode className="w-4 h-4 shrink-0" />
-            <span className="truncate">Generator</span>
+            <span className="font-sans font-bold">Generator</span>
           </TabsTrigger>
 
           <TabsTrigger 
             value="scanner" 
-            className="flex items-center justify-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm font-bold rounded-lg transition-all"
+            className="flex items-center justify-center gap-2 h-full px-4 rounded-lg font-semibold text-xs sm:text-sm text-slate-600 dark:text-slate-300 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[selected]:bg-white data-[selected]:text-slate-900 data-[selected]:shadow-sm transition-all"
           >
             <Camera className="w-4 h-4 shrink-0" />
-            <span className="truncate">Scanner</span>
+            <span className="font-sans font-bold">Scanner</span>
           </TabsTrigger>
 
           <TabsTrigger 
             value="history" 
-            className="flex items-center justify-center gap-1.5 py-2.5 px-3 text-xs sm:text-sm font-bold rounded-lg transition-all"
+            className="flex items-center justify-center gap-2 h-full px-4 rounded-lg font-semibold text-xs sm:text-sm text-slate-600 dark:text-slate-300 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm data-[selected]:bg-white data-[selected]:text-slate-900 data-[selected]:shadow-sm transition-all"
           >
             <History className="w-4 h-4 shrink-0" />
-            <span className="truncate">History</span>
+            <span className="font-sans font-bold">History</span>
           </TabsTrigger>
         </TabsList>
 
